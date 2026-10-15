@@ -52,7 +52,7 @@
     var set = function (k, v) { store.setRule(k, v); if (onChange) onChange(); };
     var seg = function (value, label) {
       return h("button", { type: "button", cls: "seg" + (st.voteMode === value ? " on" : ""), "data-mode": value, "aria-pressed": st.voteMode === value ? "true" : "false",
-        on: { click: function () { set("voteMode", value); } } }, [Icons.icon(value === "anonymous" ? "domino-mask" : "all-seeing-eye"), " " + label]);
+        on: { click: function () { set("voteMode", value); } } }, [label]);
     };
     var check = function (key, label) {
       var box = h("input", { type: "checkbox", checked: !!st[key], "data-rule": key, on: { change: function (e) { set(key, e.target.checked); } } });

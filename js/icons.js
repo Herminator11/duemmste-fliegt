@@ -14,6 +14,14 @@
   /* Pause und Play: game-icons.net, Autor guard13007 (CC BY 3.0), ohne den schwarzen Hintergrund. */
   BODY["pause-button"] = '<path d="M120.16 45A20.162 20.162 0 0 0 100 65.16v381.68A20.162 20.162 0 0 0 120.16 467h65.68A20.162 20.162 0 0 0 206 446.84V65.16A20.162 20.162 0 0 0 185.84 45h-65.68zm206 0A20.162 20.162 0 0 0 306 65.16v381.68A20.162 20.162 0 0 0 326.16 467h65.68A20.162 20.162 0 0 0 412 446.84V65.16A20.162 20.162 0 0 0 391.84 45h-65.68z"/>';
   BODY["play-button"] = '<path d="M106.854 106.002a26.003 26.003 0 0 0-25.64 29.326c16 124 16 117.344 0 241.344a26.003 26.003 0 0 0 35.776 27.332l298-124a26.003 26.003 0 0 0 0-48.008l-298-124a26.003 26.003 0 0 0-10.136-1.994z"/>';
+  /* Herz und gebrochenes Herz stammen aus verschiedenen Zeichnungen: Das ganze Herz füllt nur 449 von 512 Einheiten, das gebrochene 494.
+     Beide werden hier auf dieselbe längste Kante (470) skaliert und auf die Bildmitte gesetzt, damit sie nebeneinander gleich groß wirken. */
+  function fit(name, x, y, w, h, size) {
+    var k = size / Math.max(w, h);
+    BODY[name] = '<g transform="translate(256 256) scale(' + k.toFixed(4) + ') translate(' + (-(x + w / 2)).toFixed(2) + ' ' + (-(y + h / 2)).toFixed(2) + ')">' + BODY[name] + '</g>';
+  }
+  fit("hearts", 31.8, 31.2, 448.5, 449.6, 470);
+  fit("broken-heart", 8.4, 25.5, 494.2, 464.3, 470);
   var cache = {};
   function uri(name) {
     if (!BODY[name]) return null;

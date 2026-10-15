@@ -354,8 +354,17 @@ details.manual>summary{cursor:pointer;color:var(--dim);padding:var(--s2) 0}
 .seggroup{display:inline-flex;border:2px solid var(--edge);border-radius:var(--r-s);overflow:hidden;width:max-content;max-width:100%}
 .seg{appearance:none;display:inline-flex;flex:1 1 auto;min-width:0;align-items:center;justify-content:center;gap:var(--s2);border:0;background:transparent;color:var(--text);min-height:44px;padding:0 var(--s4);font-weight:700;cursor:pointer}
 .seg.on{background:var(--text);color:var(--ground)}
-.rule{display:flex;align-items:center;gap:var(--s3);padding:var(--s1) 0;color:var(--text);cursor:pointer}
-.rule input{width:20px;height:20px}
+.rule{display:grid;grid-template-columns:22px minmax(0,1fr);align-items:start;column-gap:var(--s3);min-height:44px;padding:11px 0;line-height:1.45;color:var(--text);cursor:pointer}
+/* Eigene Checkbox: feste Größe (schrumpft nicht), die Mitte liegt auf der ersten Textzeile, auch wenn der Text umbricht */
+.rule input{appearance:none;-webkit-appearance:none;display:grid;place-content:center;width:22px;height:22px;margin:calc((1.45em - 22px) / 2) 0 0;padding:0;border:2px solid var(--edge);border-radius:6px;background:transparent;cursor:pointer;transition:background-color var(--t-fast),border-color var(--t-fast)}
+.rule input::before{content:"";width:14px;height:14px;background:var(--ground);transform:scale(0);transition:transform var(--t-fast);
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='none' stroke='%23000' stroke-width='72' stroke-linecap='round' stroke-linejoin='round' d='M96 272l108 108 212-248'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='none' stroke='%23000' stroke-width='72' stroke-linecap='round' stroke-linejoin='round' d='M96 272l108 108 212-248'/%3E%3C/svg%3E") center/contain no-repeat}
+.rule input:checked{background:var(--text);border-color:var(--text)}
+.rule input:checked::before{transform:scale(1)}
+.rule:hover input:not(:checked){border-color:var(--dim)}
+.rule input:focus-visible{outline:3px solid var(--text);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){.rule input,.rule input::before{transition:none}}
 
 /* ---------- Avatare ---------- */
 .avatar{display:block;border-radius:50%;object-fit:cover;background:var(--surface);flex:none}
@@ -719,19 +728,13 @@ kbd{font-family:var(--ui);font-weight:700;padding:0 var(--s2);border-radius:var(
 .rbtn.on.hb-ok,.rbtn.on.hb-bad{background:color-mix(in srgb,var(--rc) 28%,transparent);border-color:var(--rc);color:var(--rc)}
 .hb-bad kbd{background:color-mix(in srgb,var(--rc) 18%,transparent);color:var(--rc)}
 
-/* ---------- Kreise je Frage: Ergebnis nicht nur durch Farbe (WCAG 1.4.1) ---------- */
-/* Häkchen, Kreuz und Strich in dunkler Schrift auf der Ergebnisfarbe; gleiche Linien wie die Ergebnis-Knöpfe in icons.js */
+/* ---------- Kreise je Frage: schlichte Punkte ohne Symbol. Das Ergebnis steht zusätzlich im Hover-Fenster und im aria-label. ---------- */
 .dd{position:relative;width:18px;height:18px}
 .hb-dots .dd{width:16px;height:16px}
-.dd.r-richtig::after,.dd.r-falsch::after,.dd.r-keine::after{content:"";position:absolute;inset:2px;background:var(--ground);
-  -webkit-mask:var(--g) center/contain no-repeat;mask:var(--g) center/contain no-repeat}
-.dd.r-richtig{--g:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='none' stroke='%23000' stroke-width='64' stroke-linecap='round' stroke-linejoin='round' d='M96 272l108 108 212-248'/%3E%3C/svg%3E")}
-.dd.r-falsch{--g:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='none' stroke='%23000' stroke-width='64' stroke-linecap='round' d='M120 120l272 272M392 120L120 392'/%3E%3C/svg%3E")}
-.dd.r-keine{--g:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='none' stroke='%23000' stroke-width='64' stroke-linecap='round' d='M112 256h288'/%3E%3C/svg%3E")}
 
 /* ---------- Kleine Host-Knöpfe: Trefferfläche ≥ 44 px, sichtbare Größe bleibt ---------- */
 /* Die Fläche wächst nach oben und unten (nicht zur Seite), damit nebeneinander liegende Herzen sich nicht überlappen. */
-.hb-heart,.hb-hbtn{position:relative;min-width:28px}
+.hb-heart,.hb-hbtn{position:relative;min-width:24px}
 .hb-hbtn{min-width:32px}
 .hb-heart::after,.hb-hbtn::after,.dd-btn::after{content:"";position:absolute;left:0;right:0;top:-8px;bottom:-8px}
 .hb-gear{position:relative}
