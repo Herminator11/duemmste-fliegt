@@ -837,3 +837,15 @@ body[data-view="anzeige"] .calm-btn,body[data-view="spiel"] .calm-btn{display:no
 .hb-top .dsp-right{flex:0 0 auto}
 @media(max-width:1199px){.hb-top .dsp-title{display:none}}
 .hb-top .hb-headL .hb-ctrl{width:auto;max-width:none;margin:0}
+
+/* Master: Antwort-Fenster an den Kreisen kompakt (auf dem Game Screen bleibt das große Banner für den Fernseher) */
+.hb-tile .dsp-pop{left:8px;right:auto;top:38px;width:min(320px,calc(100% - 16px));padding:var(--s3) var(--s4);border-width:2px;border-radius:var(--r-m);align-items:flex-start;text-align:left}
+.hb-tile .dsp-pa{align-items:flex-start;gap:var(--s1)}
+.hb-tile .dsp-pop .dsp-plab{font-size:var(--fs-xs);letter-spacing:.1em}
+.hb-tile .dsp-pq{font-size:var(--fs-m);line-height:1.25}
+.hb-tile .dsp-prow{align-items:flex-start;gap:var(--s1);margin-top:var(--s1);padding-top:var(--s2)}
+.hb-tile .dsp-pop .dsp-correct{font-size:var(--fs-s)}
+.hb-tile .dsp-pop .dsp-pt{justify-content:flex-start;font-size:var(--fs-m)}
+.hb-tile .hb-edit{margin-top:var(--s2);padding-top:var(--s3);gap:var(--s2)}
+.hb-tile .hb-edit-in{min-height:44px;font-size:var(--fs-m)}
+.hb-tile .hb-edit-res .rbtn{height:44px}
