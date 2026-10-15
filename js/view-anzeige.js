@@ -133,6 +133,7 @@
     var cls = "dsp-p" + (p.out && !p.ghost ? " out" : "") + (p.ghost ? " ghost" : "") + (isTurn ? " turn" : "") + (cand ? " cand" : "") + (runoff && !cand ? " nocand" : "")
       + (isVoted ? " voted" : "") + (loser ? " loser" : "") + (anim ? " anim" : "");
     var t = h("div", { cls: cls, "data-pid": p.id });
+    if (isTurn) U.sync(t);
     t.style.setProperty("--i", String(idx));
     t.style.setProperty("--n", String(v.players.length));
     t.appendChild(media(p));
@@ -146,8 +147,7 @@
       v.voting && v.showVoted && v.voterIds && v.voterIds.indexOf(p.id) >= 0 ? h("span", { cls: "dsp-check" + (isVoted ? " on" : ""), role: "img", "aria-label": isVoted ? "hat gestimmt" : "noch nicht gestimmt" }, [Icons.icon("check-mark")]) : null
     ]));
     t.appendChild(h("span", { cls: "dsp-name", text: p.name }));
-    if (isTurn) t.appendChild(h("span", { cls: "dsp-turn", role: "status" }, ["Dran"]));
-    else if (p.ghost) t.appendChild(h("span", { cls: "dsp-ghost" }, ["Geist"]));
+    if (p.ghost) t.appendChild(h("span", { cls: "dsp-ghost" }, ["Geist"]));
     if (n) t.appendChild(h("span", { cls: "dsp-pill" }, [Icons.icon("vote"), " " + n + (n === 1 ? " Stimme" : " Stimmen")]));
     return t;
   }

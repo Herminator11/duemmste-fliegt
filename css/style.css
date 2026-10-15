@@ -773,7 +773,7 @@ body[data-view="anzeige"] .calm-btn,body[data-view="spiel"] .calm-btn{display:no
 .dsp-hearts{gap:var(--s2)}
 .hb-heart,.hb-hbtn{font-size:var(--fs-xl)}
 .hb-gear{width:30px;height:30px;background:transparent}
-.dd.live{background:transparent;border-color:var(--c);animation:pulse 1.2s ease-in-out infinite}
+.dd.live{background:transparent;border-color:var(--c);animation:pulse 1.8s ease-in-out infinite}
 .dd.live.r-richtig{background:#3ddc97;border-color:#3ddc97;animation:none}
 .dd.live.r-falsch{background:var(--danger);border-color:var(--danger);animation:none}
 .dd.live.r-keine{background:var(--dim);border-color:var(--dim);animation:none}
@@ -822,3 +822,18 @@ body[data-view="anzeige"] .calm-btn,body[data-view="spiel"] .calm-btn{display:no
 .hb-hov .btn.btn-main:hover{filter:brightness(1.1)}
 
 .hb-top .dsp-round{justify-content:center;text-align:center;line-height:1}
+
+/* Kopfzeile des Masters: Steuerung neben der Session-Anzeige */
+.hb-headL{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;min-width:0}
+.hb-headL .hb-ctrl{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap}
+/* Zahnrad der Kopfzeile ohne Rahmen */
+#hb-menu{border-color:transparent;background:transparent}
+#hb-menu:hover,#hb-menu[aria-expanded="true"]{background:color-mix(in srgb,var(--c) 18%,transparent);border-color:transparent}
+/* „Dran setzen“: unten rechts auf der Kachel */
+.hb-hov{left:auto;right:10px;bottom:10px;justify-content:flex-end}
+@media(prefers-reduced-motion:reduce){.dd.live{animation:none}}
+.hb-top .dsp-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--s2) var(--s4)}
+.hb-top .dsp-title{flex:1 1 auto;text-align:center;min-width:0;white-space:nowrap}
+.hb-top .dsp-right{flex:0 0 auto}
+@media(max-width:1199px){.hb-top .dsp-title{display:none}}
+.hb-top .hb-headL .hb-ctrl{width:auto;max-width:none;margin:0}

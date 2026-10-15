@@ -84,6 +84,11 @@
     lastCue = key;
   }
 
-  window.U = { announce: announce, timeCue: timeCue, h: h, $: $, hearts: hearts, heartsEl: heartsEl, rulesBox: rulesBox, RESULT_LABEL: RESULT_LABEL, RESULT_SHORT: RESULT_SHORT };
+  /* Leuchten und Blinken laufen auf einer gemeinsamen Uhr (Periode in ms): Wird ein Element beim Neuzeichnen neu gebaut,
+     setzt es die Animation an der Stelle fort, an der die anderen gerade sind, statt von vorn zu beginnen. */
+  var PULSE_MS = 1800;
+  function sync(el) { el.style.animationDelay = "-" + (Date.now() % PULSE_MS) + "ms"; return el; }
+
+  window.U = { sync: sync, announce: announce, timeCue: timeCue, h: h, $: $, hearts: hearts, heartsEl: heartsEl, rulesBox: rulesBox, RESULT_LABEL: RESULT_LABEL, RESULT_SHORT: RESULT_SHORT };
   window.Views = {};
 })();

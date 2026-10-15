@@ -134,7 +134,7 @@ def main():
         check("G4 Erste Farbe", c1.lower() == "#ffb347", c1)
         check("G5 Aktuelle Frage = Frage 1", "Music Streaming" in qtext())
         check("G5 Richtige Antwort sichtbar", "Spotify" in pg.inner_text("#hb-atext"))
-        check("G5 Erster Spieler ist dran", owner() == "Anna" and "dran" in pg.locator(".hb-tile.turn .dsp-turn").first.inner_text().lower())
+        check("G5 Erster Spieler ist dran", owner() == "Anna" and "Anna" in pg.locator(".hb-tile.turn .dsp-name").first.inner_text())
         check("G6 'Danach' zeigt Frage 2", "24h" in pg.locator(".hb-flip .hb-front .hb-q").text_content())
 
         # Leeres Feld + Enter = richtig, weiter zu Frage 2 und Ben
