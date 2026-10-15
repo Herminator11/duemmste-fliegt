@@ -217,4 +217,17 @@ const rb = S.importData(bad);
 assert(rb.ok && rb.dropped === 2 && rb.questions === nq && rb.sessions === ns);
 assert.deepEqual(S.state.game.sessions.map((x) => x.n), S.state.game.sessions.map((_, i) => i + 1));
 assert(!S.importData({ questions: "kaputt" }).ok, "ohne Grundform bleibt es abgelehnt");
+// Leben direkt setzen (Herzklick im Master)
+{
+  const X = S.state.players[0];
+  assert(S.setLives(X.id, 2) && X.lives === 2);
+  assert(S.setLives(X.id, 3) && X.lives === 3);
+  assert(S.setLives(X.id, 1) && X.lives === 1);
+  assert(S.setLives(X.id, 500) && X.lives === 99, "obere Grenze 99");
+  assert(S.setLives(X.id, -4) && X.lives === 0, "untere Grenze 0");
+  assert(!S.setLives(X.id, 1.5) && !S.setLives("gibt-es-nicht", 1));
+  S.setGhost(X.id, { vote: true, questions: false });
+  S.setLives(X.id, 2);
+  assert.equal(X.ghost, null, "mit Leben ist man kein Geist mehr");
+}
 console.log("Store-Test: alle Prüfungen bestanden");

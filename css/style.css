@@ -887,8 +887,6 @@ body[data-view="anzeige"] .calm-btn,body[data-view="spiel"] .calm-btn{display:no
 .hb-heart:not(.on){color:var(--dim)}
 .hb-heart.act:not(.on):hover{color:var(--danger)}
 .hb-heart:not(.act)::after{display:none}
-.hb-bonus{color:var(--dim);font-size:var(--fs-l);min-width:22px}
-.hb-bonus:hover{color:var(--text)}
 
 /* ---------- Name auf der Kachel (Master): Klick ändert ---------- */
 .hb-name{appearance:none;border:0;cursor:text;color:var(--text);font:inherit;font-family:var(--display);font-weight:800;font-size:var(--fs-m);transition:background-color var(--t-fast),box-shadow var(--t-fast)}

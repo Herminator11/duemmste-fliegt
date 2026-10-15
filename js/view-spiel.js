@@ -157,14 +157,17 @@
 
   /* Herzreihe der Kachel (nur Master). Regeln, damit jeder Klick einen Sinn hat:
        L = Leben, S = Startleben, es werden max(L, S) Herzen gezeigt (volle vorn, leere dahinter).
-       - Anklickbar ist nur das letzte volle Herz (Index L-1): entfernt ein Leben. Bei 0 Leben gibt es kein volles Herz.
-       - Und das erste leere Herz (Index L): gibt dieses Leben zurück. Alle anderen Herzen sind nur Anzeige.
-       - Sind alle Herzen voll (L >= S), erscheint hinter der Reihe ein kleines „+“ für ein Bonusleben (bis 99).
+       - Volles Herz an Stelle i (ab dem zweiten): Klick setzt die Leben auf i, dieses und alle vollen dahinter werden leer.
+       - Das erste Herz ist nur anklickbar, wenn es das einzige volle ist (letztes Leben, führt zum Ausscheiden).
+         Bei zwei oder mehr vollen Herzen hätte der Klick keinen Sinn, dann ist es nur Anzeige.
+       - Leeres Herz an Stelle i: Klick setzt die Leben auf i + 1, alle Herzen bis dorthin sind voll.
        - Ab 11 Herzen: Zahl mit − und +. Fällt ein Spieler auf 0, öffnen sich seine Einstellungen (Geist, Entfernen). */
   function heartsRow(p, start) {
     var L = p.lives, total = Math.max(L, start);
     var box = h("div", { cls: "hb-hearts", role: "group", "aria-label": "Leben von " + p.name });
-    var change = function (d) { Store.adjustLives(p.id, d); if (Store.findPlayer(p.id).lives <= 0) openSettings(p.id); redraw(); };
+    var change = function (d) { Store.adjustLives(p.id, d); after(); };
+    var setTo = function (n) { Store.setLives(p.id, n); after(); };
+    var after = function () { if (Store.findPlayer(p.id).lives <= 0) openSettings(p.id); redraw(); };
     if (total > 10) {
       box.appendChild(h("button", { type: "button", cls: "hb-hbtn", "data-act": "life-down", title: "Ein Leben abziehen", "aria-label": "Leben von " + p.name + " abziehen", disabled: L <= 0, text: "−", on: { click: function () { change(-1); } } }));
       box.appendChild(h("span", { cls: "hb-hnum" }, [Icons.icon("hearts", "h-full"), " " + L]));
@@ -173,13 +176,14 @@
     }
     for (var i = 0; i < total; i++) {
       var full = i < L, icon = Icons.icon(full ? "hearts" : "broken-heart");
-      var act = full && i === L - 1 ? "life-down" : !full && i === L ? "life-up" : null;
+      var canDown = full && (i >= 1 || L === 1), act = canDown ? "life-down" : !full ? "life-up" : null;
       if (!act) { box.appendChild(h("span", { cls: "hb-heart" + (full ? " on" : ""), "aria-hidden": "true" }, [icon])); continue; }
-      box.appendChild(h("button", { type: "button", cls: "hb-heart act" + (full ? " on" : ""), "data-act": act,
-        title: full ? "Ein Leben abziehen" : "Ein Leben hinzufügen", "aria-label": (full ? "Leben von " + p.name + " abziehen" : "Leben von " + p.name + " hinzufügen") + " (" + L + " von " + total + ")",
-        on: { click: function () { change(full ? -1 : 1); } } }, [icon]));
+      var target = full ? i : i + 1;
+      box.appendChild(h("button", { type: "button", cls: "hb-heart act" + (full ? " on" : ""), "data-act": act, "data-lives": String(target),
+        title: target === 0 ? "Letztes Leben abziehen" : "Auf " + target + (target === 1 ? " Leben" : " Leben") + " setzen",
+        "aria-label": "Leben von " + p.name + " auf " + target + " setzen (jetzt " + L + " von " + total + ")",
+        on: { click: (function (n) { return function () { setTo(n); }; })(target) } }, [icon]));
     }
-    if (L >= total && L < 99) box.appendChild(h("button", { type: "button", cls: "hb-hbtn hb-bonus", "data-act": "life-up", title: "Bonusleben hinzufügen", "aria-label": "Bonusleben für " + p.name, text: "+", on: { click: function () { change(1); } } }));
     return box;
   }
 

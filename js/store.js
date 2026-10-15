@@ -515,6 +515,15 @@
     save();
     return true;
   }
+  /* Leben direkt auf einen Wert setzen (Master klickt ein Herz an). */
+  function setLives(id, n) {
+    var p = findPlayer(id);
+    if (!p || !Number.isInteger(n)) return false;
+    p.lives = Math.max(0, Math.min(99, n));
+    if (p.lives > 0) p.ghost = null;
+    save();
+    return true;
+  }
   /* Geist-Modus für einen Ausgeschiedenen: cfg = { vote, questions } oder null (wieder ganz draußen). */
   function setGhost(id, cfg) {
     var p = findPlayer(id);
@@ -831,7 +840,7 @@
     newGamePos: newGamePos,
     alivePlayers: alivePlayers, askablePlayers: askablePlayers, voterPlayers: voterPlayers, candidatePlayers: candidatePlayers,
     isGhost: isGhost, setGhost: setGhost, endgame: endgame, turnPlayer: turnPlayer, setTurn: setTurn, findPlayer: findPlayer, addPlayer: addPlayer, renamePlayer: renamePlayer,
-    removePlayer: removePlayer, setStartLives: setStartLives, adjustLives: adjustLives, winner: winner,
+    removePlayer: removePlayer, setStartLives: setStartLives, adjustLives: adjustLives, setLives: setLives, winner: winner,
     statementTarget: statementTarget, setStatement: setStatement, editStatement: editStatement, commitAnswer: commitAnswer, askedList: askedList, setPublished: setPublished,
     statementList: statementList, playerHistory: playerHistory,
     setRule: setRule, setAvatar: setAvatar, normAvatar: normAvatar, AVATAR_STYLES: AVATAR_STYLES, applyVotes: applyVotes, setChangeHandler: function (fn) { onChange = fn; },

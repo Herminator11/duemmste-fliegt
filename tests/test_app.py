@@ -154,16 +154,29 @@ def main():
         # Leben per Herzklick
         t0 = pg.locator(".hb-tile").first
         before_l = pg.locator('.hb-tile >> nth=0 >> .hb-heart.on').count()
-        t0.locator('[data-act="life-down"]').first.click()
+        t0.locator('[data-act="life-down"]').last.click()
         check("G8b Herzklick zieht ein Leben ab", pg.locator('.hb-tile >> nth=0 >> .hb-heart.on').count() == before_l - 1)
         pg.locator(".hb-tile").first.locator('[data-act="life-up"]').first.click()
         check("G8b Leeres Herz gibt es zurück", pg.locator('.hb-tile >> nth=0 >> .hb-heart.on').count() == before_l)
-        # Herz-Regeln: bei vollen Leben ist nur das letzte Herz anklickbar (plus Bonus-Plus), nach einem Abzug zusätzlich das erste leere
-        check("G8d Volle Leben: genau ein klickbares Herz", pg.locator('.hb-tile >> nth=0 >> .hb-heart.act').count() == 1)
-        pg.locator('.hb-tile >> nth=0 >> .hb-heart.act').click()
-        check("G8d Nach Abzug: letztes volles und erstes leeres Herz klickbar", pg.locator('.hb-tile >> nth=0 >> .hb-heart.act').count() == 2)
-        pg.locator('.hb-tile >> nth=0 >> .hb-heart.act:not(.on)').click()
-        check("G8d Leeres Herz klicken gibt das Leben zurück", pg.locator('.hb-tile >> nth=0 >> .hb-heart.on').count() == before_l)
+        # Herz-Regeln (Startleben 3): Klick auf ein volles Herz ab dem zweiten setzt die Leben auf dessen Stelle, das erste ist bei 2+ Leben gesperrt
+        H = '.hb-tile >> nth=0 >> .hb-hearts > .hb-heart'
+        def lives0(): return pg.evaluate("Store.state.players[0].lives")
+        def act_idx(): return pg.evaluate("Array.from(document.querySelectorAll('.hb-tile')[0].querySelectorAll('.hb-hearts > .hb-heart')).map((e,i)=>e.classList.contains('act')?i:-1).filter(i=>i>=0)")
+        start_l = pg.evaluate("Store.state.settings.startLives")
+        if start_l == 3 and lives0() == 3:
+            check("G8d 3 Leben: erstes Herz gesperrt, Herz 2 und 3 klickbar", act_idx() == [1, 2], act_idx())
+            pg.locator(H).nth(2).click()
+            check("G8d Drittes Herz: 2 rot, 1 grau", lives0() == 2 and act_idx() == [1, 2], (lives0(), act_idx()))
+            pg.locator(H).nth(2).click()
+            check("G8d Graues Herz: wieder 3 rot", lives0() == 3)
+            pg.locator(H).nth(1).click()
+            check("G8d Zweites rotes Herz: 1 rot, 2 grau", lives0() == 1, lives0())
+            check("G8d Bei 1 Leben ist das erste Herz klickbar, die grauen auch", act_idx() == [0, 1, 2], act_idx())
+            pg.locator(H).nth(2).click()
+            check("G8d Graues Herz ganz rechts füllt bis dorthin auf", lives0() == 3, lives0())
+            check("G8d Zurück bei 3: erstes Herz wieder gesperrt", act_idx() == [1, 2], act_idx())
+        else:
+            check("G8d Voraussetzung: 3 Leben für Herz-Test", False, (start_l, lives0()))
         # Name per Klick auf der Kachel
         pg.locator('.hb-tile >> nth=1 >> [data-act="rename"]').click()
         pg.fill(".hb-name-in", "Benedikt"); pg.keyboard.press("Enter")
