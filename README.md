@@ -74,3 +74,11 @@ Schriften (lokal in `fonts/`): Bowlby One (SIL OFL 1.1, Lizenz in `fonts/bowlby-
 Icons (Herzen, Totenkopf, Pokal, Häkchen und weitere): [game-icons.net](https://game-icons.net) von Lorc, Delapouite, Skoll, sbed und Zeromancer, Lizenz [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/). Die Namen der verwendeten Icons und ihrer Autoren stehen in `js/vendor/ICONS.txt`, ein Hinweis steht auch unten auf der Startseite. Die Icons liegen in `js/icons.js` und werden als Maske in der Textfarbe gezeichnet.
 
 Figuren-Generator: [DiceBear](https://www.dicebear.com/) (MIT). Stile: Open Peeps von Pablo Stanley und Lorelei von Lisa Wischofsky, beide CC0 (keine Namensnennung nötig, hier trotzdem genannt). Die Dateien liegen lokal in `js/vendor/`, es wird nichts von Fremdservern geladen. Lizenztexte: `js/vendor/LICENSES.txt`.
+
+## Git-Arbeitsweise
+- `main` ist immer lauffähig (`npm test` grün). Keine direkten Commits auf `main` (blockiert der Hook `.githooks/pre-commit`).
+- Pro Feature oder Fehlerbehebung ein Branch: `scripts/feature.sh <name>` legt `feature/<name>` an (Fehler: danach von Hand `fix/<name>`).
+- Kleine, in sich stimmige Commits mit Nachrichten nach Conventional Commits: `feat: …`, `fix: …`, `docs: …`, `refactor: …`, `test: …`, `chore: …`. Im Imperativ, Betreff unter 72 Zeichen.
+- Jeder Commit wird automatisch nach `origin/<branch>` gepusht (`.githooks/post-commit`). Ohne Remote bleibt er lokal.
+- Fertig = Pull Request nach `main`, Tests laufen, dann Merge und Branch löschen. Kein Force-Push auf `main`.
+- Einmalig nach dem Klonen: `git config core.hooksPath .githooks`. Remote anlegen: `git remote add origin <URL>` und `git push -u origin main`.

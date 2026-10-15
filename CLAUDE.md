@@ -38,3 +38,6 @@ Interpret creatively and make unexpected choices that feel genuinely designed fo
 - **Hintergrund:** Mehrere Verläufe, Streifenmuster und ein langsamer Lichtkegel, nie eine einfarbige Fläche (`body` und `body::before` in `css/style.css`).
 - **Bewegung:** Nur CSS. Gestaffelter Einstieg beim Seitenwechsel (`body.enter`) und beim ersten Aufbau der Kacheln auf dem Game Screen. Keine Wiederholung bei jedem Neuzeichnen, sonst flackert die Anzeige. `prefers-reduced-motion` wird beachtet.
 - **Neue Gestaltung bitte im selben Geist** weiterführen und nicht auf Standardlösungen zurückfallen.
+
+## Git
+- Jedes Feature auf eigenem Branch (`scripts/feature.sh <name>`), nie direkt auf `main` committen. Commits nach Conventional Commits; der Hook pusht automatisch. Siehe README „Git-Arbeitsweise“.
