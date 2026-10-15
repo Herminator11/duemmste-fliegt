@@ -196,6 +196,10 @@ assert.equal(S.askedList(Y.id)[0].text, "korrigiert"); assert.equal(S.askedList(
 assert.equal(S.playerHistory(Y.id)[0].said, "korrigiert");
 assert(!S.editStatement({ n: 99, idx: 0 }, Y.id, { text: "x" }), "unbekannte Frage wird abgelehnt");
 S.editStatement(ref, Y.id, { text: "", result: "keine" });   // zurück für die folgenden Prüfungen
+// „Richtig“ ohne Text übernimmt die hinterlegte richtige Antwort
+const q0 = S.state.game.sessions[0].played[0];
+assert(S.editStatement(S.askedList(X.id)[0].ref, X.id, { text: "", result: "richtig" }));
+assert.equal(S.askedList(X.id)[0].text, q0.answer);
 assert.equal(S.state.game.sessions[0].played[0].pid, X.id);
 pv = S.publicView();
 assert.deepEqual(pv.players.map((p) => p.dots), [[], [], []], "während der Runde keine Punkte");

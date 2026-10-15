@@ -72,6 +72,14 @@
     return { vote: g.vote !== false, questions: g.questions !== false };
   }
 
+  /* Wer richtig geantwortet hat, hat die richtige Antwort gesagt: ohne eigenen Text gilt die hinterlegte Antwort der Frage. */
+  function fillCorrect(statements, answer) {
+    Object.keys(statements).forEach(function (id) {
+      var st = statements[id];
+      if (st && st.result === "richtig" && !st.text && answer) st.text = String(answer).slice(0, 500);
+    });
+    return statements;
+  }
   function normStatements(o) {
     var out = {};
     if (!o || typeof o !== "object") return out;
@@ -126,7 +134,7 @@
         played: s.played.filter(function (x) { return x && typeof x.text === "string"; })
           .map(function (x) {
             return { qid: String(x.qid || ""), text: x.text, answer: String(x.answer || ""),
-              statements: normStatements(x.statements), published: !!x.published, pid: typeof x.pid === "string" ? x.pid : null };
+              statements: fillCorrect(normStatements(x.statements), String(x.answer || "")), published: !!x.published, pid: typeof x.pid === "string" ? x.pid : null };
           }),
         vote: normVote(s.vote),
         startedAt: typeof s.startedAt === "number" ? s.startedAt : null,
@@ -534,17 +542,19 @@
     }
     return null;
   }
-  function applyStatement(entry, p, patch) {
+  function applyStatement(entry, p, patch, answer) {
     var cur = entry.statements[p.id] || { name: p.name, text: "", result: null };
     if ("text" in patch) cur.text = String(patch.text == null ? "" : patch.text).slice(0, 500);
     if ("result" in patch) cur.result = RESULTS.indexOf(patch.result) >= 0 ? patch.result : null;
     cur.name = p.name;
+    /* „Richtig“ ohne eigenen Text: die richtige Antwort der Frage übernehmen (der Master muss sie nicht eintippen) */
+    if (cur.result === "richtig" && !cur.text && answer) cur.text = String(answer).slice(0, 500);
     if (cur.text || cur.result) entry.statements[p.id] = cur; else delete entry.statements[p.id];
   }
   function setStatement(pid, patch) {
     var t = statementTarget(), p = findPlayer(pid);
     if (!t || !p) return false;
-    applyStatement(t.entry, p, patch);
+    applyStatement(t.entry, p, patch, t.answer);
     save();
     return true;
   }
@@ -559,7 +569,7 @@
   function editStatement(ref, pid, patch) {
     var e = entryAt(ref), p = findPlayer(pid);
     if (!e || !p || !patch) return false;
-    applyStatement(e, p, patch);
+    applyStatement(e, p, patch, e.answer || (ref.live && curQuestion() ? curQuestion().answer : ""));
     save();
     return true;
   }

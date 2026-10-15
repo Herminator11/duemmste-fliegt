@@ -146,7 +146,7 @@
       v.voting && v.showVoted && v.voterIds && v.voterIds.indexOf(p.id) >= 0 ? h("span", { cls: "dsp-check" + (isVoted ? " on" : ""), role: "img", "aria-label": isVoted ? "hat gestimmt" : "noch nicht gestimmt" }, [Icons.icon("check-mark")]) : null
     ]));
     t.appendChild(h("span", { cls: "dsp-name", text: p.name }));
-    if (isTurn) t.appendChild(h("span", { cls: "dsp-turn", role: "status" }, [Icons.icon("round-star"), " Dran"]));
+    if (isTurn) t.appendChild(h("span", { cls: "dsp-turn", role: "status" }, ["Dran"]));
     else if (p.ghost) t.appendChild(h("span", { cls: "dsp-ghost" }, ["Geist"]));
     if (n) t.appendChild(h("span", { cls: "dsp-pill" }, [Icons.icon("vote"), " " + n + (n === 1 ? " Stimme" : " Stimmen")]));
     return t;
@@ -174,10 +174,10 @@
     animKey = key;
 
     var page = h("div", { cls: "dsp" });
-    var fs = h("button", { cls: "btn btn-sm dsp-fs", id: "dsp-fs", type: "button", text: "Vollbild",
-      on: { click: function () { if (document.fullscreenElement) document.exitFullscreen(); else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); } } });
+    var fs = h("button", { cls: "ibtn dsp-fs", id: "dsp-fs", type: "button", title: "Vollbild", "aria-label": "Vollbild",
+      on: { click: function () { if (document.fullscreenElement) document.exitFullscreen(); else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); } } }, [Icons.icon("expand")]);
     page.appendChild(h("div", { cls: "dsp-head" }, [
-      h("span", { cls: "dsp-round", id: "dsp-round" }, [Icons.icon("round-star"), " " + (v.round ? "Runde " + v.round : "Bereit")]),
+      h("span", { cls: "dsp-round", id: "dsp-round" }, [v.round ? "Runde " + v.round : "Bereit"]),
       h("span", { cls: "dsp-title", text: "Der Dümmste fliegt" }),
       h("span", { cls: "dsp-right" }, [
         h("span", { cls: "dsp-timer time", id: "time", role: "timer" }, [Icons.icon("stopwatch"), h("span", { id: "time-text", text: "00:00" })]),
