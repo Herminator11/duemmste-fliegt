@@ -13,7 +13,7 @@
   var histOpen = null, openSess = {}, openPl = {}, voteMsg = null;
   var openDot = null, editRow = null;   // angeklickter Kreis (pid:n:idx) und Zeile in „Aussagen je Spieler“, die gerade bearbeitet wird
   /* Ansicht bei kleiner Fensterhöhe: „fit“ = Kacheln passen sich der Höhe an, nichts wird verdeckt; „compact“ = Kacheln wie gehabt, nur die untere Leiste ist schlanker */
-  var layout = "fit";
+  var layout = "compact";
   try { var lsv = localStorage.getItem("dfg_layout"); if (lsv === "fit" || lsv === "compact") layout = lsv; } catch (e) { /* ohne Speicher gilt die Vorgabe */ }
   function setLayout(v) { layout = v; try { localStorage.setItem("dfg_layout", v); } catch (e) { /* egal */ } redraw(); }
   var nameEdit = null, focusName = false;   // Spieler, dessen Name gerade auf der Kachel bearbeitet wird
