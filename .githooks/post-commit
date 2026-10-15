@@ -1,0 +1,9 @@
+#!/bin/sh
+# Schiebt jeden Commit automatisch auf den gleichnamigen Branch im Remote „origin“.
+# Ohne Remote oder ohne Netz passiert nichts, der Commit bleibt lokal.
+branch=$(git symbolic-ref --short -q HEAD) || exit 0
+git remote get-url origin >/dev/null 2>&1 || exit 0
+if ! git push -q -u origin "$branch" 2>/dev/null; then
+  echo "Hinweis: Push von '$branch' fehlgeschlagen. Später mit 'git push' nachholen." >&2
+fi
+exit 0

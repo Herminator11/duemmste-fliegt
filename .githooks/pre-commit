@@ -1,0 +1,8 @@
+#!/bin/sh
+# Keine direkten Commits auf main: Änderungen laufen über Feature-Branches (scripts/feature.sh).
+# Ausnahme für den Notfall: ALLOW_MAIN=1 git commit ...
+branch=$(git symbolic-ref --short -q HEAD)
+if [ "$branch" = "main" ] && [ -z "$ALLOW_MAIN" ]; then
+  echo "Direkte Commits auf main sind nicht erlaubt. Starte ein Feature mit: scripts/feature.sh <name>" >&2
+  exit 1
+fi
