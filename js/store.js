@@ -534,14 +534,32 @@
     }
     return null;
   }
-  function setStatement(pid, patch) {
-    var t = statementTarget(), p = findPlayer(pid);
-    if (!t || !p) return false;
-    var cur = t.entry.statements[pid] || { name: p.name, text: "", result: null };
+  function applyStatement(entry, p, patch) {
+    var cur = entry.statements[p.id] || { name: p.name, text: "", result: null };
     if ("text" in patch) cur.text = String(patch.text == null ? "" : patch.text).slice(0, 500);
     if ("result" in patch) cur.result = RESULTS.indexOf(patch.result) >= 0 ? patch.result : null;
     cur.name = p.name;
-    if (cur.text || cur.result) t.entry.statements[pid] = cur; else delete t.entry.statements[pid];
+    if (cur.text || cur.result) entry.statements[p.id] = cur; else delete entry.statements[p.id];
+  }
+  function setStatement(pid, patch) {
+    var t = statementTarget(), p = findPlayer(pid);
+    if (!t || !p) return false;
+    applyStatement(t.entry, p, patch);
+    save();
+    return true;
+  }
+  /* Eintrag einer beliebigen Frage: ref = { n: Session, idx: Platz in played } oder { live: true } für die laufende Frage. */
+  function entryAt(ref) {
+    if (!ref) return null;
+    if (ref.live) return isActive() && curQuestion() ? state.game.draft : null;
+    var s = state.game.sessions.filter(function (x) { return x.n === ref.n; })[0];
+    return s && s.played[ref.idx] ? s.played[ref.idx] : null;
+  }
+  /* Master: Antwort oder Ergebnis zu einer früheren (oder der laufenden) Frage nachträglich ändern, zum Beispiel nach einem Tippfehler. */
+  function editStatement(ref, pid, patch) {
+    var e = entryAt(ref), p = findPlayer(pid);
+    if (!e || !p || !patch) return false;
+    applyStatement(e, p, patch);
     save();
     return true;
   }
@@ -566,14 +584,14 @@
   function askedList(pid) {
     var s = curSession(), out = [];
     if (!s) return out;
-    s.played.forEach(function (e) {
+    s.played.forEach(function (e, idx) {
       var st = e.statements[pid];
-      if (e.pid === pid || st) out.push({ result: st ? st.result : null, live: false });
+      if (e.pid === pid || st) out.push({ result: st ? st.result : null, live: false, ref: { n: s.n, idx: idx }, question: e.text, correct: e.answer, text: st ? st.text : "" });
     });
     var q = curQuestion();
     if (isActive() && q) {
       var d = state.game.draft, st2 = d.statements[pid];
-      if (currentTurnId() === pid || st2) out.push({ result: st2 ? st2.result : null, live: true });
+      if (currentTurnId() === pid || st2) out.push({ result: st2 ? st2.result : null, live: true, ref: { live: true }, question: q.text, correct: q.answer, text: st2 ? st2.text : "" });
     }
     return out;
   }
@@ -601,11 +619,11 @@
     state.game.sessions.forEach(function (s) {
       s.played.forEach(function (e) {
         var st = e.statements[pid];
-        if (st) out.push({ n: s.n, color: s.color, text: e.text, answer: e.answer, said: st.text, result: st.result });
+        if (st) out.push({ n: s.n, color: s.color, text: e.text, answer: e.answer, said: st.text, result: st.result, ref: { n: s.n, idx: s.played.indexOf(e) } });
       });
     });
     var d = state.game.draft.statements[pid], q = curQuestion();
-    if (d && isActive() && q) out.push({ n: curSession().n, color: curSession().color, text: q.text, answer: q.answer, said: d.text, result: d.result, live: true });
+    if (d && isActive() && q) out.push({ n: curSession().n, color: curSession().color, text: q.text, answer: q.answer, said: d.text, result: d.result, live: true, ref: { live: true } });
     return out.reverse();
   }
 
@@ -804,7 +822,7 @@
     alivePlayers: alivePlayers, askablePlayers: askablePlayers, voterPlayers: voterPlayers, candidatePlayers: candidatePlayers,
     isGhost: isGhost, setGhost: setGhost, endgame: endgame, turnPlayer: turnPlayer, setTurn: setTurn, findPlayer: findPlayer, addPlayer: addPlayer, renamePlayer: renamePlayer,
     removePlayer: removePlayer, setStartLives: setStartLives, adjustLives: adjustLives, winner: winner,
-    statementTarget: statementTarget, setStatement: setStatement, commitAnswer: commitAnswer, askedList: askedList, setPublished: setPublished,
+    statementTarget: statementTarget, setStatement: setStatement, editStatement: editStatement, commitAnswer: commitAnswer, askedList: askedList, setPublished: setPublished,
     statementList: statementList, playerHistory: playerHistory,
     setRule: setRule, setAvatar: setAvatar, normAvatar: normAvatar, AVATAR_STYLES: AVATAR_STYLES, applyVotes: applyVotes, setChangeHandler: function (fn) { onChange = fn; },
     voteOpen: voteOpen, voteKey: voteKey, curVote: curVote, setVote: setVote, missingVoters: missingVoters, resolveVote: resolveVote,

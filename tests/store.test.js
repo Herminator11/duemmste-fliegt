@@ -184,11 +184,18 @@ assert(!cr.ok && cr.needResult, "mit Text braucht es ein Ergebnis");
 cr = S.commitAnswer(X.id, { result: "richtig" });
 assert(cr.ok && cr.advanced);
 assert.equal(S.turnPlayer().name, "Ben"); assert.notEqual(S.curQuestion().text, q1, "Frage wechselt mit dem Spieler");
-assert.deepEqual(S.askedList(X.id), [{ result: "richtig", live: false }]);
-assert.deepEqual(S.askedList(Y.id), [{ result: null, live: true }], "laufende Frage als offener Kreis");
+assert.deepEqual(S.askedList(X.id).map((d) => [d.result, d.live]), [["richtig", false]]);
+assert.deepEqual(S.askedList(Y.id).map((d) => [d.result, d.live]), [[null, true]], "laufende Frage als offener Kreis");
 cr = S.commitAnswer(Y.id);   // ohne Text und Ergebnis: keine Antwort
 assert(cr.ok);
-assert.deepEqual(S.askedList(Y.id), [{ result: "keine", live: false }]);
+assert.deepEqual(S.askedList(Y.id).map((d) => [d.result, d.live]), [["keine", false]]);
+// Master ändert eine frühere Antwort nachträglich (Tippfehler)
+const ref = S.askedList(Y.id)[0].ref;
+assert(S.editStatement(ref, Y.id, { text: "korrigiert", result: "falsch" }));
+assert.equal(S.askedList(Y.id)[0].text, "korrigiert"); assert.equal(S.askedList(Y.id)[0].result, "falsch");
+assert.equal(S.playerHistory(Y.id)[0].said, "korrigiert");
+assert(!S.editStatement({ n: 99, idx: 0 }, Y.id, { text: "x" }), "unbekannte Frage wird abgelehnt");
+S.editStatement(ref, Y.id, { text: "", result: "keine" });   // zurück für die folgenden Prüfungen
 assert.equal(S.state.game.sessions[0].played[0].pid, X.id);
 pv = S.publicView();
 assert.deepEqual(pv.players.map((p) => p.dots), [[], [], []], "während der Runde keine Punkte");

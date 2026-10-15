@@ -12,6 +12,7 @@
   var draft = null;                  // Eingaben für Min/Sek, die ein Neuzeichnen überleben sollen
   /* Zustand, der ein Neuzeichnen überleben soll */
   var histOpen = null, openSess = {}, openPl = {}, voteMsg = null;
+  var openDot = null, editRow = null;   // angeklickter Kreis (pid:n:idx) und Zeile in „Aussagen je Spieler“, die gerade bearbeitet wird
   var openSet = {}, confirmRemove = {};   // Einstellungen je Spieler aufgeklappt, „Entfernen“ wartet auf Bestätigung
 
   function redraw() { render(); }
@@ -157,6 +158,39 @@
     return box;
   }
 
+  /* Master: Antwort und Ergebnis zu einer Frage nachträglich ändern (Tippfehler, falsch eingetragen). Speichert beim Verlassen des Felds oder mit Enter. */
+  function refKey(pid, ref) { return pid + ":" + (ref.live ? "live" : ref.n + "-" + ref.idx); }
+  function answerEditor(p, ref, text, result, close) {
+    var inp = h("input", { type: "text", cls: "hb-edit-in", maxlength: "500", value: text || "", autocomplete: "off", "aria-label": "Antwort von " + p.name + " ändern", placeholder: "(ohne Text)",
+      on: { change: function () { Store.editStatement(ref, p.id, { text: inp.value }); redraw(); },
+        keydown: function (ev) { if (ev.key === "Enter") { ev.preventDefault(); inp.blur(); } else if (ev.key === "Escape" && close) close(); } } });
+    var res = h("div", { cls: "hb-edit-res", role: "group", "aria-label": "Ergebnis ändern" });
+    [["richtig", "Richtig"], ["falsch", "Falsch"], ["keine", "Keine"]].forEach(function (x) {
+      var on = result === x[0];
+      res.appendChild(h("button", { type: "button", cls: "rbtn hb-sm r-" + x[0] + (on ? " on" : ""), "data-set-result": x[0], "aria-pressed": on ? "true" : "false", text: x[1],
+        on: { click: function () { Store.editStatement(ref, p.id, { result: on ? null : x[0] }); redraw(); } } }));
+    });
+    return h("div", { cls: "hb-edit" }, [inp, res]);
+  }
+
+  /* Kreis je Frage mit Fenster: Hover zeigt Frage, richtige Antwort und Antwort des Spielers, Klick hält das Fenster offen zum Ändern. */
+  function dotEl(p, d, i) {
+    var key = refKey(p.id, d.ref), isOpen = openDot === key;
+    var verdict = d.result ? U.RESULT_LABEL[d.result] : d.live ? "läuft gerade" : "offen";
+    var tone = d.result || "keine";
+    var pop = h("span", { cls: "hb-dpop res-" + tone, role: "group", "aria-label": "Frage " + (i + 1) + " von " + p.name }, [
+      h("small", { cls: "hb-dplab", text: "Frage " + (i + 1) + " · " + verdict }),
+      h("span", { cls: "hb-dpq", text: d.question }),
+      h("small", { cls: "hb-dpc", text: "Richtig: " + d.correct }),
+      h("span", { cls: "hb-dpa" }, [d.text ? p.name + ": " + d.text : h("i", { text: p.name + " hat nicht geantwortet" })]),
+      isOpen ? answerEditor(p, d.ref, d.text, d.result, function () { openDot = null; redraw(); }) : h("small", { cls: "hb-dphint", text: "Klicken zum Ändern" })
+    ]);
+    var btn = h("button", { type: "button", cls: "hb-dbtn", "data-dot": i, "aria-expanded": isOpen ? "true" : "false", "aria-label": "Frage " + (i + 1) + " von " + p.name + ": " + verdict,
+      on: { click: function () { openDot = isOpen ? null : key; redraw(); } } },
+      [h("i", { cls: "dd" + (d.result ? " r-" + d.result : "") + (d.live ? " live" : "") })]);
+    return h("span", { cls: "hb-dwrap" + (isOpen ? " open" : "") }, [btn, pop]);
+  }
+
   function tile(p, ctx) {
     var out = p.lives <= 0, ghost = Store.isGhost(p);
     var isTurn = !!ctx.tp && ctx.tp.id === p.id;
@@ -188,8 +222,8 @@
     /* Ein Kreis je Frage, die dieser Spieler in dieser Session bekommen hat. Der laufende Kreis blinkt und färbt sich mit dem Ergebnis. */
     var asked = Store.askedList(p.id);
     if (asked.length) {
-      var dots = h("span", { cls: "hb-dots", "aria-label": asked.length + (asked.length === 1 ? " Frage" : " Fragen") + " bekommen", title: asked.length + (asked.length === 1 ? " Frage" : " Fragen") + " in dieser Session" });
-      asked.forEach(function (d) { dots.appendChild(h("i", { cls: "dd" + (d.result ? " r-" + d.result : "") + (d.live ? " live" : ""), title: d.live ? "läuft gerade" : d.result ? U.RESULT_LABEL[d.result] : "offen" })); });
+      var dots = h("span", { cls: "hb-dots", role: "group", "aria-label": asked.length + (asked.length === 1 ? " Frage" : " Fragen") + " in dieser Session" });
+      asked.forEach(function (d, i) { dots.appendChild(dotEl(p, d, i)); });
       t.appendChild(dots);
     }
     if (voted) t.appendChild(h("span", { cls: "hb-voted", role: "img", "aria-label": "hat gestimmt" }, [Icons.icon("check-mark")]));
@@ -500,11 +534,21 @@
       ]));
       if (!hist.length) d.appendChild(h("p", { cls: "empty", style: "padding:0 0 10px", text: "Noch keine Aussage." }));
       hist.forEach(function (x) {
+        var rk = refKey(p.id, x.ref), editing = editRow === rk;
         var r = h("div", { cls: "hrow" }, [
           h("span", { cls: "hq", text: "Session " + x.n + " · " + x.text }),
           h("span", { cls: "hs", text: x.said || "(ohne Text)" }),
-          x.result ? h("span", { cls: "rtag r-" + x.result, text: U.RESULT_LABEL[x.result] }) : null
+          h("span", { cls: "hact" }, [
+            x.result ? h("span", { cls: "rtag r-" + x.result, text: U.RESULT_LABEL[x.result] }) : null,
+            h("button", { type: "button", cls: "btn btn-sm btn-text", "data-act": "edit-answer", "aria-expanded": editing ? "true" : "false", text: editing ? "Fertig" : "Ändern",
+              on: { click: function () { editRow = editing ? null : rk; redraw(); } } })
+          ])
         ]);
+        if (editing) {
+          var ed = answerEditor(p, x.ref, x.said, x.result, function () { editRow = null; redraw(); });
+          ed.style.gridColumn = "1/-1";
+          r.appendChild(ed);
+        }
         r.style.setProperty("--c", x.color);
         d.appendChild(r);
       });
@@ -633,5 +677,5 @@
   Views.spiel = { render: render, refresh: function () { redraw(); }, tick: paintTime, key: key,
     autoResolve: autoResolve,
     net: function (kind) { if (kind === "data") updateVoteOnline(); },
-    reset: function () { sel = null; menuOpen = false; confirmEnd = false; confirmNew = false; errMsg = ""; draft = null; voteMsg = null; } };
+    reset: function () { sel = null; menuOpen = false; openDot = null; editRow = null; confirmEnd = false; confirmNew = false; errMsg = ""; draft = null; voteMsg = null; } };
 })();
