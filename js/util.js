@@ -50,16 +50,27 @@
   function rulesBox(store, onChange) {
     var st = store.state.settings;
     var set = function (k, v) { store.setRule(k, v); if (onChange) onChange(); };
+    var modes = ["anonymous", "public"];
     var seg = function (value, label) {
-      return h("button", { type: "button", cls: "seg" + (st.voteMode === value ? " on" : ""), "data-mode": value, "aria-pressed": st.voteMode === value ? "true" : "false",
-        on: { click: function () { set("voteMode", value); } } }, [label]);
+      return h("button", { type: "button", "data-mode": value, "aria-pressed": st.voteMode === value ? "true" : "false",
+        on: { click: function () { slide(value); } } }, [label]);
     };
     var check = function (key, label) {
       var box = h("input", { type: "checkbox", checked: !!st[key], "data-rule": key, on: { change: function (e) { set(key, e.target.checked); } } });
       return h("label", { cls: "rule" }, [box, label]);
     };
+    /* Gleitschalter: Die Box wird bei jeder Änderung neu gebaut. Darum rutscht erst der Griff der alten Box, dann erst wird gespeichert. */
+    var mode = h("div", { cls: "swt", id: "vote-mode", role: "group", "aria-label": "Stimmen" }, [h("span", { cls: "swt-thumb", "aria-hidden": "true" }), seg("anonymous", "Stimmen anonym"), seg("public", "Stimmen offen")]);
+    mode.style.setProperty("--n", 2);
+    mode.style.setProperty("--i", modes.indexOf(st.voteMode));
+    function slide(value) {
+      if (value === st.voteMode) return;
+      mode.style.setProperty("--i", modes.indexOf(value));
+      Array.prototype.forEach.call(mode.querySelectorAll("button"), function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-mode") === value ? "true" : "false"); });
+      setTimeout(function () { set("voteMode", value); }, 320);
+    }
     return h("div", { cls: "rules", id: "rules" }, [
-      h("div", { cls: "seggroup", role: "group", "aria-label": "Stimmen" }, [seg("anonymous", "Stimmen anonym"), seg("public", "Stimmen offen")]),
+      mode,
       h("p", { cls: "hint", style: "margin:6px 0 8px", text: st.voteMode === "anonymous" ? "Alle sehen nur, wie viele Stimmen jeder bekommen hat." : "Alle sehen auch, wer wen gewählt hat." }),
       check("showVoted", "Zeigen, wer schon gestimmt hat"),
       check("autoReveal", "Automatisch auflösen, sobald alle gestimmt haben")

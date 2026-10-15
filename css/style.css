@@ -66,6 +66,7 @@ a{color:inherit}
 .btn-main{background:var(--text);border-color:var(--text);color:var(--ground)}
 .btn-main:hover{background:#fff;border-color:#fff}
 .btn-danger{border-color:var(--danger);color:var(--danger)}
+.btn-ic{width:44px;min-height:44px;padding:0;display:inline-grid;place-items:center;font-size:1.2rem}
 .btn-danger:hover{background:var(--danger);color:var(--ground);border-color:var(--danger)}
 .btn-sm{min-height:40px;padding:0 var(--s3);font-size:var(--fs-s)}
 
@@ -375,12 +376,49 @@ details.manual>summary{cursor:pointer;color:var(--dim);padding:var(--s2) 0}
 .avmodal{position:fixed;inset:0;z-index:50;background:rgba(5,12,16,.82);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:var(--s4)}
 .avpanel{width:100%;max-width:599px;background:var(--surface);border:2px solid var(--line);border-radius:var(--r-m);padding:var(--s4);margin:auto 0}
 .avpanel h2{margin:0 0 var(--s3)}
-.avtop{display:flex;gap:var(--s4);align-items:center;margin:var(--s3) 0}
-.avprev{width:140px;height:140px;border:2px solid var(--line)}
-.avfields{display:grid;gap:var(--s2)}
-.avrow{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);flex-wrap:wrap}
-.avlab{color:var(--dim);min-width:110px}
-.avsw,.sw-row{display:flex;gap:var(--s2);flex-wrap:wrap}
+.avmode{display:grid;margin:var(--s3) 0 var(--s4)}
+/* Gleitschalter (Bauen/Zeichnen, Stil, Farbtest): Der Griff rutscht in Session-Farbe zur gewählten Seite */
+.swt{position:relative;display:grid;grid-template-columns:repeat(var(--n,2),minmax(0,1fr));padding:3px;border:2px solid var(--edge);border-radius:var(--r-pill);background:var(--ground);isolation:isolate}
+.swt-thumb{position:absolute;z-index:-1;top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / var(--n,2));border-radius:var(--r-pill);background:var(--c);
+  box-shadow:0 2px 10px color-mix(in srgb,var(--c) 45%,transparent);transform:translateX(calc(var(--i,0) * 100%));transition:transform var(--t-slow) var(--spring)}
+.swt button{appearance:none;border:0;background:transparent;color:var(--text);min-height:44px;padding:0 var(--s3);border-radius:var(--r-pill);font:inherit;font-weight:700;cursor:pointer;transition:color var(--t-fast)}
+.swt button[aria-pressed="true"]{color:var(--ground)}
+.swt button:focus-visible{outline:3px solid var(--text);outline-offset:2px}
+.avstage{display:grid;justify-items:center;gap:var(--s3);margin:0 0 var(--s4)}
+.avframe{position:relative}
+.avprev{width:168px;height:168px;border:3px solid var(--c);box-shadow:0 0 0 6px color-mix(in srgb,var(--c) 18%,transparent),0 12px 28px rgba(0,0,0,.45)}
+.avstyle{width:100%;max-width:300px}
+.avdice{appearance:none;position:absolute;right:-10px;bottom:-6px;width:52px;height:52px;border-radius:50%;border:3px solid var(--ground);background:var(--gold);color:var(--ground);display:grid;place-items:center;font-size:1.7rem;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.45);transition:transform var(--t-press)}
+.avdice:active{transform:scale(.9)}
+.avdice:focus-visible{outline:3px solid var(--text);outline-offset:2px}
+.avdice.rolling .ic{animation:roll .6s var(--out)}
+@keyframes roll{from{transform:rotate(0) scale(.8)}60%{transform:rotate(300deg) scale(1.15)}to{transform:rotate(360deg) scale(1)}}
+.avprev.pop{animation:avpop .35s var(--spring)}
+.avprev.swap{animation:avswap .55s var(--out)}
+@keyframes avpop{from{transform:scale(.9)}to{transform:none}}
+@keyframes avswap{0%{transform:rotateY(0) scale(1)}45%{transform:rotateY(90deg) scale(.9)}55%{transform:rotateY(-90deg) scale(.9)}100%{transform:rotateY(0) scale(1)}}
+.avfields{display:grid;gap:var(--s1)}
+.avrow{display:flex;align-items:center;justify-content:space-between;gap:var(--s3)}
+.avlab{color:var(--dim);flex:1 1 auto}
+.avstep{display:grid;grid-template-columns:44px 88px 44px;align-items:center}
+.avarrow{appearance:none;display:grid;place-items:center;width:44px;height:44px;border:2px solid var(--edge);border-radius:50%;background:transparent;color:var(--text);font-size:1.1rem;cursor:pointer;transition:transform var(--t-spring) var(--spring),background-color var(--t-fast),border-color var(--t-fast)}
+.avarrow:hover{background:color-mix(in srgb,var(--c) 22%,transparent);border-color:var(--c)}
+.avarrow:active{transform:scale(.88);transition-duration:var(--t-press)}
+.avarrow:focus-visible{outline:3px solid var(--text);outline-offset:2px}
+.avval{text-align:center;font-family:var(--display);font-weight:800;font-variant-numeric:tabular-nums}
+.avval.tick-l{animation:tickl .25s var(--out)}
+.avval.tick-r{animation:tickr .25s var(--out)}
+@keyframes tickl{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
+@keyframes tickr{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
+.avcolor{display:grid;gap:var(--s1);justify-content:stretch;padding:var(--s2) 0}
+.avsw{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:var(--s2);align-items:center}
+.avcolor .sw-c{width:100%;height:auto;aspect-ratio:1;max-width:48px;justify-self:center}
+.avpicker{appearance:none;grid-column:1 / 5;width:100%;height:44px;padding:0;border:2px solid var(--edge);border-radius:var(--r-m);background:transparent;cursor:pointer}
+.avpicker::-webkit-color-swatch-wrapper{padding:3px}
+.avpicker::-webkit-color-swatch{border:0;border-radius:calc(var(--r-m) - 4px)}
+.avpicker::-moz-color-swatch{border:0;border-radius:calc(var(--r-m) - 4px)}
+.avtest{display:grid;gap:var(--s2);margin-top:var(--s4);padding-top:var(--s3);border-top:1px dashed var(--line)}
+.sw-row{display:flex;gap:var(--s2);flex-wrap:wrap}
 .sw-c{appearance:none;width:44px;height:44px;border-radius:50%;border:3px solid transparent;outline:2px solid var(--edge);cursor:pointer;padding:0}
 .sw-c.on{outline:3px solid var(--text)}
 .draw{display:grid;gap:var(--s3);margin-top:var(--s3)}
@@ -729,7 +767,7 @@ body[data-view="anzeige"] .calm-btn,body[data-view="spiel"] .calm-btn{display:no
 .avmodal.leaving{opacity:0;transition:opacity 160ms ease-in;pointer-events:none}
 .avmodal.leaving .avpanel{transform:translateY(8px) scale(.98);transition:transform 160ms ease-in}
 @keyframes fadein{from{opacity:0}}
-@media(prefers-reduced-motion:reduce){.avmodal,.avmodal .avpanel{animation:none}.avmodal.leaving,.avmodal.leaving .avpanel{transition:none}}
+@media(prefers-reduced-motion:reduce){.swt-thumb,.avarrow{transition:none}.avprev.pop,.avprev.swap,.avval.tick-l,.avval.tick-r,.avdice.rolling .ic{animation:none}.avmodal,.avmodal .avpanel{animation:none}.avmodal.leaving,.avmodal.leaving .avpanel{transition:none}}
 
 /* ---------- Game Screen aus der Ferne: größere Schrift ab 1280 px und ab 1920 px ---------- */
 @media(min-width:1280px){
@@ -923,3 +961,4 @@ body[data-view="anzeige"] .calm-btn,body[data-view="spiel"] .calm-btn{display:no
   .hb--fit .hb-answer{flex-basis:300px}
 }
 @media(max-height:700px){.hb-flip{height:84px}}
+.rules .swt{max-width:360px}

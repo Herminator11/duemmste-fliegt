@@ -19,6 +19,11 @@
   })();
   BODY["edit"] = '<path ' + LINE.replace('52','44') + ' d="M88 424l24-96L340 100a36 36 0 0 1 52 0l20 20a36 36 0 0 1 0 52L184 400zM300 140l72 72"/>';
   BODY["ghost"] = '<path fill="#000" d="M256 40c-86 0-152 64-152 150v250c0 14 16 20 26 10l32-32 34 34c8 8 20 8 28 0l32-32 32 32c8 8 20 8 28 0l34-34 32 32c10 10 26 4 26-10V190c0-86-66-150-152-150zm-56 140a28 28 0 1 1 0 56 28 28 0 0 1 0-56zm112 0a28 28 0 1 1 0 56 28 28 0 0 1 0-56z"/>';
+  /* Würfel (fünf Augen) und Pfeile zum Durchklicken: eigene Zeichnung. */
+  BODY["dice"] = '<rect x="64" y="64" width="384" height="384" rx="96" fill="none" stroke="#000" stroke-width="44"/><g fill="#000"><circle cx="172" cy="172" r="32"/><circle cx="340" cy="172" r="32"/><circle cx="256" cy="256" r="32"/><circle cx="172" cy="340" r="32"/><circle cx="340" cy="340" r="32"/></g>';
+  BODY["chevron-left"] = '<path ' + LINE.replace('52','64') + ' d="M328 96L168 256l160 160"/>';
+  BODY["chevron-right"] = '<path ' + LINE.replace('52','64') + ' d="M184 96l160 160-160 160"/>';
+  BODY["trash"] = '<path ' + LINE.replace('52','40') + ' d="M80 136h352M200 136V80h112v56M128 136l24 296h208l24-296M216 224v128M296 224v128"/>';
   BODY["expand"] = '<path ' + LINE.replace('52','40') + ' d="M80 200V80h120M312 80h120v120M432 312v120H312M200 432H80V312"/>';
   /* Pause und Play: game-icons.net, Autor guard13007 (CC BY 3.0), ohne den schwarzen Hintergrund. */
   BODY["pause-button"] = '<path d="M120.16 45A20.162 20.162 0 0 0 100 65.16v381.68A20.162 20.162 0 0 0 120.16 467h65.68A20.162 20.162 0 0 0 206 446.84V65.16A20.162 20.162 0 0 0 185.84 45h-65.68zm206 0A20.162 20.162 0 0 0 306 65.16v381.68A20.162 20.162 0 0 0 326.16 467h65.68A20.162 20.162 0 0 0 412 446.84V65.16A20.162 20.162 0 0 0 391.84 45h-65.68z"/>';

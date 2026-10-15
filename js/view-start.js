@@ -207,13 +207,8 @@
         Avatar.render(p, 40),
         h("span", { cls: "pname", text: p.name }),
         U.heartsEl(p.lives, st.settings.startLives),
-        h("button", { cls: "btn btn-sm", type: "button", "data-act": "avatar", "aria-label": "Figur von " + p.name + " ändern",
-          on: { click: function () {
-            Avatar.open({ player: { id: p.id, name: p.name }, current: p.avatar, canReset: !!p.avatar,
-              onSave: function (a) { return Net.assignAvatar(p.id, a).then(function () { render(); }); } });
-          } } }, [Icons.icon("paint-brush"), " Figur"]),
-        h("button", { cls: "btn btn-sm", type: "button", text: "Entfernen", "data-act": "rm", "aria-label": p.name + " entfernen",
-          on: { click: function () { Store.removePlayer(p.id); render(); } } })
+        h("button", { cls: "btn btn-sm btn-danger btn-ic", type: "button", "data-act": "rm", "aria-label": p.name + " entfernen", title: "Entfernen",
+          on: { click: function () { Store.removePlayer(p.id); render(); } } }, [Icons.icon("trash")])
       ]));
     });
     box.appendChild(list);
