@@ -616,8 +616,6 @@ body[data-view="spiel"] .nav,body[data-view="spiel"] .chip{display:none}
   background:linear-gradient(180deg,rgba(7,18,25,.96),rgba(7,18,25,.88));backdrop-filter:blur(8px);border-bottom:2px solid var(--c)}
 .hb-left{display:flex;align-items:center;gap:var(--s4);flex:1 1 auto;min-width:0}
 .hb-brand{font-family:var(--poster);font-size:var(--fs-m);color:var(--text);text-decoration:none;white-space:nowrap}
-.hb-top .sess{display:flex;flex-direction:column;line-height:1.15}
-.hb-top .sess span{color:var(--dim);font-size:var(--fs-s)}
 .hb-ctrl{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap}
 .hb-dur{display:flex;align-items:center;gap:var(--s2);color:var(--dim);font-size:var(--fs-s)}
 .hb-dur input{width:62px;min-height:40px;text-align:center;border-radius:var(--r-s);border:2px solid var(--edge);background:var(--ground);color:var(--text);font-weight:700}
@@ -822,3 +820,5 @@ body[data-view="anzeige"] .calm-btn,body[data-view="spiel"] .calm-btn{display:no
 .hb-hov .btn:hover{background:var(--c);color:var(--ground)}
 .hb-hov .btn.btn-main{background:var(--c);color:var(--ground)}
 .hb-hov .btn.btn-main:hover{filter:brightness(1.1)}
+
+.hb-top .dsp-round{justify-content:center;text-align:center;line-height:1}

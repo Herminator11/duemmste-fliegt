@@ -51,13 +51,13 @@
     /* Erste Zeile wie auf dem Game Screen: Runde, Titel, Zeit, Modus, Vollbild. Dazu kommt „Spiel“ nur für den Master. */
     var status = s ? (s.status === "running" ? "läuft" : s.status === "paused" ? "pausiert" : "beendet") : "";
     var head = h("div", { cls: "dsp-head" }, [
-      h("span", { cls: "dsp-round sess", id: "dsp-round" }, [s ? "Session " + s.n + " · " + status : "Bereit"]),
+      h("span", { cls: "dsp-round", id: "dsp-round" }, [s ? "Session " + s.n + " · " + status : "Bereit"]),
       h("a", { cls: "dsp-title hb-brand", href: "#/start", text: "Der Dümmste fliegt" }),
       h("span", { cls: "dsp-right" }, [
         h("span", { cls: "dsp-timer time", id: "time", role: "timer" }, [Icons.icon("stopwatch"), h("span", { id: "time-text", text: "00:00" })]),
         h("span", { cls: "dsp-mode", id: "dsp-mode" }, [Icons.icon(st.settings.voteMode === "public" ? "all-seeing-eye" : "domino-mask"), " " + (st.settings.voteMode === "public" ? "Offene Stimmen" : "Anonyme Stimmen")]),
-        h("button", { cls: "btn btn-sm", id: "hb-menu", type: "button", "aria-expanded": menuOpen ? "true" : "false",
-          on: { click: function () { menuOpen = !menuOpen; redraw(); } } }, [Icons.icon("gear"), " Spiel"]),
+        h("button", { cls: "ibtn", id: "hb-menu", type: "button", title: "Spiel-Einstellungen", "aria-label": "Spiel-Einstellungen", "aria-expanded": menuOpen ? "true" : "false",
+          on: { click: function () { menuOpen = !menuOpen; redraw(); } } }, [Icons.icon("gear")]),
         h("button", { cls: "ibtn", id: "hb-fs", type: "button", title: "Vollbild (F)", "aria-label": "Vollbild", on: { click: toggleFullscreen } }, [Icons.icon("expand")])
       ])
     ]);

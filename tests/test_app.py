@@ -36,7 +36,7 @@ def main():
             pg.wait_for_timeout(150)
 
         t = lambda: pg.inner_text("#time")
-        sess = lambda: pg.inner_text(".hb-top .sess").capitalize()
+        sess = lambda: pg.inner_text(".hb-top .dsp-round").capitalize()
         played = lambda: pg.locator("#hb-more .hb-cols > div:first-child > .row").count()
         qtext = lambda: pg.inner_text("#hb-qtext")
         owner = lambda: pg.inner_text("#hb-qowner")
@@ -320,7 +320,7 @@ def main():
         z.fill("#player-name", "Anna"); z.click("#player-add")
         z.evaluate("location.hash = '#/spiel'"); z.wait_for_timeout(200)
         z.click("#btn-start"); z.wait_for_timeout(200)
-        check("Z2 Spielen geht trotzdem", "Session 1" in z.inner_text(".hb-top .sess").capitalize())
+        check("Z2 Spielen geht trotzdem", "Session 1" in z.inner_text(".hb-top .dsp-round").capitalize())
         z.click("#btn-richtig")
         check("Z2 Weiterschalten geht trotzdem", z.locator("#hb-more .hb-cols > div:first-child > .row").count() == 1)
         check("Z3 Keine JS-Fehler bei blockiertem Speicher", not zerr, zerr)

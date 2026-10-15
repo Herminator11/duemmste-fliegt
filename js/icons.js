@@ -8,7 +8,15 @@
   BODY["check-mark"] = '<path ' + LINE + ' d="M96 272l108 108 212-248"/>';
   BODY["cross-mark"] = '<path ' + LINE + ' d="M120 120l272 272M392 120L120 392"/>';
   BODY["help"] = '<path ' + LINE + ' d="M112 256h288"/>';
-  BODY["gear"] = '<path ' + LINE.replace('52','40') + ' d="M256 176a80 80 0 1 0 0 160 80 80 0 0 0 0-160zM256 40v56M256 416v56M40 256h56M416 256h56M103 103l40 40M369 369l40 40M409 103l-40 40M143 369l-40 40"/>';
+  /* Zahnrad: 8 Zähne, Loch in der Mitte (gefüllt, Even-Odd). Berechnet statt von Hand gezeichnet, damit die Zähne gleichmäßig sitzen. */
+  (function () {
+    var n = 8, ro = 224, ri = 164, rh = 72, pts = [], k, a;
+    for (k = 0; k < n; k++) {
+      var c = (Math.PI * 2 * k) / n, w1 = 0.2, w2 = 0.12;
+      [[c - w1, ri], [c - w2, ro], [c + w2, ro], [c + w1, ri]].forEach(function (q) { pts.push((256 + Math.cos(q[0]) * q[1]).toFixed(1) + " " + (256 + Math.sin(q[0]) * q[1]).toFixed(1)); });
+    }
+    BODY["gear"] = '<path fill="#000" fill-rule="evenodd" d="M' + pts.join("L") + 'Z M' + (256 + rh) + " 256a" + rh + " " + rh + " 0 1 0 " + (-2 * rh) + " 0a" + rh + " " + rh + " 0 1 0 " + (2 * rh) + ' 0Z"/>';
+  })();
   BODY["edit"] = '<path ' + LINE.replace('52','44') + ' d="M88 424l24-96L340 100a36 36 0 0 1 52 0l20 20a36 36 0 0 1 0 52L184 400zM300 140l72 72"/>';
   BODY["ghost"] = '<path fill="#000" d="M256 40c-86 0-152 64-152 150v250c0 14 16 20 26 10l32-32 34 34c8 8 20 8 28 0l32-32 32 32c8 8 20 8 28 0l34-34 32 32c10 10 26 4 26-10V190c0-86-66-150-152-150zm-56 140a28 28 0 1 1 0 56 28 28 0 0 1 0-56zm112 0a28 28 0 1 1 0 56 28 28 0 0 1 0-56z"/>';
   BODY["expand"] = '<path ' + LINE.replace('52','40') + ' d="M80 200V80h120M312 80h120v120M432 312v120H312M200 432H80V312"/>';
