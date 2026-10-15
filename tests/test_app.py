@@ -158,6 +158,19 @@ def main():
         check("G8b Herzklick zieht ein Leben ab", pg.locator('.hb-tile >> nth=0 >> .hb-heart.on').count() == before_l - 1)
         pg.locator(".hb-tile").first.locator('[data-act="life-up"]').first.click()
         check("G8b Leeres Herz gibt es zurück", pg.locator('.hb-tile >> nth=0 >> .hb-heart.on').count() == before_l)
+        # Herz-Regeln: bei vollen Leben ist nur das letzte Herz anklickbar (plus Bonus-Plus), nach einem Abzug zusätzlich das erste leere
+        check("G8d Volle Leben: genau ein klickbares Herz", pg.locator('.hb-tile >> nth=0 >> .hb-heart.act').count() == 1)
+        pg.locator('.hb-tile >> nth=0 >> .hb-heart.act').click()
+        check("G8d Nach Abzug: letztes volles und erstes leeres Herz klickbar", pg.locator('.hb-tile >> nth=0 >> .hb-heart.act').count() == 2)
+        pg.locator('.hb-tile >> nth=0 >> .hb-heart.act:not(.on)').click()
+        check("G8d Leeres Herz klicken gibt das Leben zurück", pg.locator('.hb-tile >> nth=0 >> .hb-heart.on').count() == before_l)
+        # Name per Klick auf der Kachel
+        pg.locator('.hb-tile >> nth=1 >> [data-act="rename"]').click()
+        pg.fill(".hb-name-in", "Benedikt"); pg.keyboard.press("Enter")
+        check("G8e Name auf der Kachel ändern", pg.evaluate("Store.state.players[1].name") == "Benedikt")
+        pg.locator('.hb-tile >> nth=1 >> [data-act="rename"]').click()
+        pg.fill(".hb-name-in", "Ben"); pg.keyboard.press("Enter")
+        check("G8e Name zurückändern", pg.evaluate("Store.state.players[1].name") == "Ben")
 
         # Chip in Navigation
         go("start")
@@ -303,7 +316,7 @@ def main():
             ov = m.evaluate("document.documentElement.scrollWidth > document.documentElement.clientWidth")
             check(f"M1 Handy {route}: kein Seitwärtsscrollen", not ov)
             # Herzen und Zahnrad der Bühne haben eine per ::after auf 44 px+ vergrößerte Klickfläche
-            small = m.evaluate("[...document.querySelectorAll('button:not([disabled]):not(.hb-heart):not(.hb-hbtn):not(.hb-gear),a.btn,.links a')].filter(b=>b.offsetParent&&b.offsetHeight<44).length")
+            small = m.evaluate("[...document.querySelectorAll('button:not([disabled]):not(.hb-heart):not(.hb-hbtn):not(.hb-gear):not(.hb-name),a.btn,.links a')].filter(b=>b.offsetParent&&b.offsetHeight<44).length")
             check(f"M2 Handy {route}: alle Bedienelemente >= 44 px", small == 0, f"{small} zu klein")
 
         # ---------- Speicher blockiert ----------

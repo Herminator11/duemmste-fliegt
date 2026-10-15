@@ -12,6 +12,11 @@
   /* Zustand, der ein Neuzeichnen überleben soll */
   var histOpen = null, openSess = {}, openPl = {}, voteMsg = null;
   var openDot = null, editRow = null;   // angeklickter Kreis (pid:n:idx) und Zeile in „Aussagen je Spieler“, die gerade bearbeitet wird
+  /* Ansicht bei kleiner Fensterhöhe: „fit“ = Kacheln passen sich der Höhe an, nichts wird verdeckt; „compact“ = Kacheln wie gehabt, nur die untere Leiste ist schlanker */
+  var layout = "fit";
+  try { var lsv = localStorage.getItem("dfg_layout"); if (lsv === "fit" || lsv === "compact") layout = lsv; } catch (e) { /* ohne Speicher gilt die Vorgabe */ }
+  function setLayout(v) { layout = v; try { localStorage.setItem("dfg_layout", v); } catch (e) { /* egal */ } redraw(); }
+  var nameEdit = null, focusName = false;   // Spieler, dessen Name gerade auf der Kachel bearbeitet wird
   var openSet = {}, confirmRemove = {};   // Einstellungen je Spieler aufgeklappt, „Entfernen“ wartet auf Bestätigung
 
   function redraw() { render(); }
@@ -27,7 +32,7 @@
     root.textContent = "";
     var st = Store.state, s = Store.curSession(), active = Store.isActive();
     var tgt = Store.statementTarget();
-    var page = h("div", { cls: "hb" });
+    var page = h("div", { cls: "hb hb--" + layout });
     page.appendChild(buildTop(s));
     page.appendChild(h("div", { cls: "track hb-track" }, [h("i", { id: "track" })]));
     var screen = h("div", { cls: "hb-screen" });
@@ -41,7 +46,8 @@
     if (keepScroll) window.scrollTo(0, keepScroll);
     var ae = document.activeElement;
     var idle = !ae || ae === document.body || ae === root;
-    if (refocus || (liveTarget && idle)) { refocus = false; var a = $("hb-ans"); if (a) { a.focus({ preventScroll: true }); a.setSelectionRange(a.value.length, a.value.length); } }
+    if (focusName) { focusName = false; var ni = root.querySelector(".hb-name-in"); if (ni) { ni.focus(); ni.select(); } }
+    else if (refocus || (liveTarget && idle)) { refocus = false; var a = $("hb-ans"); if (a) { a.focus({ preventScroll: true }); a.setSelectionRange(a.value.length, a.value.length); } }
   }
 
   /* ---------- Feste Leiste oben ---------- */
@@ -105,6 +111,14 @@
         buildTools()
       ]),
       h("div", {}, [
+        h("h3", { text: "Anordnung" }),
+        h("div", { cls: "seggroup", role: "group", "aria-label": "Anordnung" }, [
+          h("button", { type: "button", cls: "seg" + (layout === "fit" ? " on" : ""), "data-layout": "fit", "aria-pressed": layout === "fit" ? "true" : "false", text: "Kacheln anpassen", on: { click: function () { setLayout("fit"); } } }),
+          h("button", { type: "button", cls: "seg" + (layout === "compact" ? " on" : ""), "data-layout": "compact", "aria-pressed": layout === "compact" ? "true" : "false", text: "Kompakte Leiste", on: { click: function () { setLayout("compact"); } } })
+        ]),
+        h("p", { cls: "hint", text: layout === "fit" ? "Alle Spieler passen immer auf den Bildschirm." : "Kacheln in voller Größe, unten eine schlanke Leiste." })
+      ]),
+      h("div", {}, [
         h("h3", { text: "Weitere Ansichten" }),
         h("p", {}, [h("a", { cls: "btn btn-sm", href: "#/anzeige", target: "_blank", rel: "noopener", text: "Game Screen öffnen" })]),
         h("p", {}, [h("a", { cls: "btn btn-sm", href: "#/start", text: "Startseite" })])
@@ -131,6 +145,8 @@
     }
     var ctx = { tp: active ? Store.turnPlayer() : null, target: currentTarget(), entry: tgt ? tgt.entry : null, pv: pv };
     var grid = h("div", { cls: "dsp-grid", id: "hb-players" });
+    var n = st.players.length, cols = n <= 3 ? n : n === 4 ? 2 : n <= 6 ? 3 : 4;
+    grid.style.setProperty("--cols", String(cols)); grid.style.setProperty("--rows", String(Math.ceil(n / cols)));
     st.players.forEach(function (p) { grid.appendChild(tile(p, ctx)); });
     stage.appendChild(grid);
 
@@ -139,23 +155,31 @@
     return stage;
   }
 
-  /* Herzreihe zum Anklicken: volles Herz entfernt eins, leeres Herz fügt eins hinzu. */
+  /* Herzreihe der Kachel (nur Master). Regeln, damit jeder Klick einen Sinn hat:
+       L = Leben, S = Startleben, es werden max(L, S) Herzen gezeigt (volle vorn, leere dahinter).
+       - Anklickbar ist nur das letzte volle Herz (Index L-1): entfernt ein Leben. Bei 0 Leben gibt es kein volles Herz.
+       - Und das erste leere Herz (Index L): gibt dieses Leben zurück. Alle anderen Herzen sind nur Anzeige.
+       - Sind alle Herzen voll (L >= S), erscheint hinter der Reihe ein kleines „+“ für ein Bonusleben (bis 99).
+       - Ab 11 Herzen: Zahl mit − und +. Fällt ein Spieler auf 0, öffnen sich seine Einstellungen (Geist, Entfernen). */
   function heartsRow(p, start) {
-    var total = Math.max(p.lives, start);
+    var L = p.lives, total = Math.max(L, start);
     var box = h("div", { cls: "hb-hearts", role: "group", "aria-label": "Leben von " + p.name });
-    var change = function (d) { Store.adjustLives(p.id, d); if (p.lives <= 0) openSettings(p.id); redraw(); };
+    var change = function (d) { Store.adjustLives(p.id, d); if (Store.findPlayer(p.id).lives <= 0) openSettings(p.id); redraw(); };
     if (total > 10) {
-      box.appendChild(h("button", { type: "button", cls: "hb-hbtn", "data-act": "life-down", "aria-label": "Leben abziehen", disabled: p.lives <= 0, text: "−", on: { click: function () { change(-1); } } }));
-      box.appendChild(h("span", { cls: "hb-hnum" }, [Icons.icon("hearts", "h-full"), " " + p.lives]));
-      box.appendChild(h("button", { type: "button", cls: "hb-hbtn", "data-act": "life-up", "aria-label": "Leben hinzufügen", text: "+", on: { click: function () { change(1); } } }));
+      box.appendChild(h("button", { type: "button", cls: "hb-hbtn", "data-act": "life-down", title: "Ein Leben abziehen", "aria-label": "Leben von " + p.name + " abziehen", disabled: L <= 0, text: "−", on: { click: function () { change(-1); } } }));
+      box.appendChild(h("span", { cls: "hb-hnum" }, [Icons.icon("hearts", "h-full"), " " + L]));
+      box.appendChild(h("button", { type: "button", cls: "hb-hbtn", "data-act": "life-up", title: "Ein Leben hinzufügen", "aria-label": "Leben von " + p.name + " hinzufügen", disabled: L >= 99, text: "+", on: { click: function () { change(1); } } }));
       return box;
     }
     for (var i = 0; i < total; i++) {
-      var full = i < p.lives;
-      box.appendChild(h("button", { type: "button", cls: "hb-heart" + (full ? " on" : ""), "data-act": full ? "life-down" : "life-up",
-        title: full ? "Ein Leben abziehen" : "Ein Leben hinzufügen", "aria-label": full ? "Leben von " + p.name + " abziehen" : "Leben von " + p.name + " hinzufügen",
-        on: { click: function () { change(full ? -1 : 1); } } }, [Icons.icon(full ? "hearts" : "broken-heart")]));
+      var full = i < L, icon = Icons.icon(full ? "hearts" : "broken-heart");
+      var act = full && i === L - 1 ? "life-down" : !full && i === L ? "life-up" : null;
+      if (!act) { box.appendChild(h("span", { cls: "hb-heart" + (full ? " on" : ""), "aria-hidden": "true" }, [icon])); continue; }
+      box.appendChild(h("button", { type: "button", cls: "hb-heart act" + (full ? " on" : ""), "data-act": act,
+        title: full ? "Ein Leben abziehen" : "Ein Leben hinzufügen", "aria-label": (full ? "Leben von " + p.name + " abziehen" : "Leben von " + p.name + " hinzufügen") + " (" + L + " von " + total + ")",
+        on: { click: function () { change(full ? -1 : 1); } } }, [icon]));
     }
+    if (L >= total && L < 99) box.appendChild(h("button", { type: "button", cls: "hb-hbtn hb-bonus", "data-act": "life-up", title: "Bonusleben hinzufügen", "aria-label": "Bonusleben für " + p.name, text: "+", on: { click: function () { change(1); } } }));
     return box;
   }
 
@@ -202,6 +226,30 @@
     return h("span", { cls: "dd-wrap" + (isOpen ? " open" : "") }, [btn, pop]);
   }
 
+  /* Name auf der Kachel: Klick (nur Master) macht ihn zum Eingabefeld, Enter oder Verlassen speichert, Esc bricht ab. */
+  function nameEl(p) {
+    if (nameEdit !== p.id) {
+      return h("button", { type: "button", cls: "dsp-name hb-name", "data-act": "rename", title: "Namen ändern", "aria-label": "Name von " + p.name + " ändern",
+        on: { click: function () { nameEdit = p.id; focusName = true; redraw(); } } }, [p.name]);
+    }
+    var done = false;
+    var inp = h("input", { type: "text", cls: "dsp-name hb-name-in", maxlength: "40", value: p.name, autocomplete: "off", "aria-label": "Neuer Name für " + p.name,
+      on: {
+        keydown: function (ev) {
+          if (ev.key === "Enter") { ev.preventDefault(); inp.blur(); }
+          else if (ev.key === "Escape") { ev.stopPropagation(); done = true; nameEdit = null; redraw(); }
+        },
+        blur: function () {
+          if (done) return;
+          done = true; nameEdit = null;
+          var v = inp.value.trim();
+          if (v && v !== p.name && !Store.renamePlayer(p.id, v)) setError("Der Name „" + v + "“ ist schon vergeben.");
+          redraw();
+        }
+      } });
+    return inp;
+  }
+
   function tile(p, ctx) {
     var out = p.lives <= 0, ghost = Store.isGhost(p);
     var isTurn = !!ctx.tp && ctx.tp.id === p.id;
@@ -234,7 +282,7 @@
       h("button", { type: "button", cls: "hb-gear", "data-act": "settings", "aria-label": "Einstellungen von " + p.name, "aria-expanded": settingsOpen(p.id) ? "true" : "false", title: "Einstellungen",
         on: { click: function () { toggleSettings(p.id); redraw(); } } }, [Icons.icon("gear")])
     ]));
-    t.appendChild(h("span", { cls: "dsp-name", text: p.name }));
+    t.appendChild(nameEl(p));
     if (ghost) t.appendChild(h("span", { cls: "dsp-ghost" }, ["Geist"]));
     if (cnt) t.appendChild(h("span", { cls: "dsp-pill" }, [Icons.icon("vote"), " " + cnt + (cnt === 1 ? " Stimme" : " Stimmen")]));
 
@@ -557,23 +605,7 @@
      Bei 0 Leben: ausgeschieden lassen, Geist (mit Wahlrecht und/oder Fragen) oder aus der Ansicht entfernen. Ein Geist steht nie zur Wahl. */
   function buildPlayerSettings(p, out, ghost, isTurn, askable) {
     var box = h("div", { cls: "pset", "data-pset": p.id });
-    var nameIn = h("input", { type: "text", cls: "pset-name", maxlength: "40", value: p.name, autocomplete: "off", "aria-label": "Name",
-      on: { change: function () {
-        if (!nameIn.value.trim() || nameIn.value.trim() === p.name) { nameIn.value = p.name; return; }
-        if (!Store.renamePlayer(p.id, nameIn.value)) { nameIn.value = p.name; setError("Der Name ist schon vergeben."); }
-        redraw();
-      }, keydown: function (ev) { if (ev.key === "Enter") { ev.preventDefault(); nameIn.blur(); } } } });
-    box.appendChild(nameIn);
-
-    var lives = h("div", { cls: "pset-row", role: "group", "aria-label": "Leben von " + p.name }, [
-      h("button", { type: "button", cls: "ibtn pset-btn", "data-act": "life-down", title: "Ein Leben abziehen", "aria-label": "Leben abziehen", disabled: p.lives <= 0, text: "−",
-        on: { click: function () { Store.adjustLives(p.id, -1); redraw(); } } }),
-      h("span", { cls: "pset-lives" }, [Icons.icon("hearts", "h-full"), " " + p.lives]),
-      h("button", { type: "button", cls: "ibtn pset-btn", "data-act": "life-up", title: "Ein Leben hinzufügen", "aria-label": "Leben hinzufügen", text: "+",
-        on: { click: function () { Store.adjustLives(p.id, 1); redraw(); } } })
-    ]);
-    box.appendChild(lives);
-
+    box.appendChild(h("h4", { cls: "pset-title", text: p.name }));
     var acts = h("div", { cls: "pset-row pset-acts" });
     /* Wer als Nächster dran ist, bestimmt der Master nur zwischen den Sessions. Während einer Session geht es von selbst reihum. */
     if (!Store.isActive() && askable && !isTurn) acts.appendChild(h("button", { type: "button", cls: "btn btn-sm", "data-act": "set-turn", text: "Als Nächsten dran setzen",

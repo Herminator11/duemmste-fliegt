@@ -878,3 +878,50 @@ body[data-view="anzeige"] .calm-btn,body[data-view="spiel"] .calm-btn{display:no
 .pset-acts .btn{min-height:40px}
 .pset-done{align-self:flex-end}
 .hb-pop .rule{min-height:0;padding:var(--s1) 0}
+
+/* ---------- Herzreihe: nur das letzte volle und das erste leere Herz sind anklickbar ---------- */
+.hb-heart{cursor:default;display:inline-flex;align-items:center;justify-content:center;transition:transform var(--t-spring) var(--spring),color var(--t-fast)}
+.hb-heart.act{cursor:pointer}
+.hb-heart:not(.act):hover{transform:none}
+.hb-heart.act:hover{transform:scale(1.25)}
+.hb-heart:not(.on){color:var(--dim)}
+.hb-heart.act:not(.on):hover{color:var(--danger)}
+.hb-heart:not(.act)::after{display:none}
+.hb-bonus{color:var(--dim);font-size:var(--fs-l);min-width:22px}
+.hb-bonus:hover{color:var(--text)}
+
+/* ---------- Name auf der Kachel (Master): Klick ändert ---------- */
+.hb-name{appearance:none;border:0;cursor:text;color:var(--text);font:inherit;font-family:var(--display);font-weight:800;font-size:var(--fs-m);transition:background-color var(--t-fast),box-shadow var(--t-fast)}
+.hb-name:hover,.hb-name:focus-visible{background:var(--ground);box-shadow:0 0 0 2px var(--c)}
+.hb-name:focus-visible{outline:none}
+.hb-name-in{z-index:7;width:min(80%,260px);max-width:none;text-align:center;border:2px solid var(--c);background:var(--ground);color:var(--text);box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 35%,transparent);outline:none}
+.pset-title{margin:0;font-family:var(--display);font-size:var(--fs-l)}
+.hb-name::after{content:"";position:absolute;left:0;right:0;top:-8px;bottom:-8px}
+
+/* ---------- Anordnung A „Kacheln anpassen“: Kopf, Spielfeld und untere Leiste füllen genau den Bildschirm ---------- */
+@media(min-width:600px){
+  .hb--fit .hb-screen{height:calc(100dvh - var(--bar-h,74px) - 6px);min-height:0}
+  .hb--fit .hb-stage{display:flex;flex-direction:column;flex:1 1 0;min-height:0;overflow:auto;padding:var(--s3) var(--s5)}
+  .hb--fit .dsp-grid{display:grid;grid-template-columns:repeat(var(--cols,2),minmax(0,1fr));grid-auto-rows:minmax(0,1fr);gap:var(--s3);margin:0;
+    flex:1 0 calc(var(--rows,2) * 120px + (var(--rows,2) - 1) * var(--s3))}
+  .hb--fit .dsp-p{flex:none;aspect-ratio:auto;max-height:none;min-height:0;max-width:none !important;width:auto}
+  .hb--fit .hb-bottom{position:static;flex:none}
+  .hb--fit .hb-more{display:block}
+}
+/* ---------- Anordnung B „Kompakte Leiste“: Kacheln wie gehabt, untere Leiste so schlank wie möglich.
+   Anordnung A nutzt dieselbe schlanke Leiste, sobald das Fenster niedriger als 700 px ist. ---------- */
+.hb--compact .hb-bottom{padding:6px 20px calc(6px + env(safe-area-inset-bottom));gap:var(--s3)}
+.hb--compact .hb-cards,.hb--compact .hb-qwho small{display:none}
+.hb--compact .hb-qa{gap:2px;flex-basis:320px}
+.hb--compact .hb-qtext{font-size:var(--fs-l);line-height:1.2}
+.hb--compact .hb-atext{font-size:var(--fs-m);flex-direction:row;gap:var(--s2);align-items:baseline}
+.hb--compact .hb-answer{flex-basis:300px}
+@media(max-height:700px){
+  .hb--fit .hb-bottom{padding:6px 20px calc(6px + env(safe-area-inset-bottom));gap:var(--s3)}
+  .hb--fit .hb-cards,.hb--fit .hb-qwho small{display:none}
+  .hb--fit .hb-qa{gap:2px;flex-basis:320px}
+  .hb--fit .hb-qtext{font-size:var(--fs-l);line-height:1.2}
+  .hb--fit .hb-atext{font-size:var(--fs-m);flex-direction:row;gap:var(--s2);align-items:baseline}
+  .hb--fit .hb-answer{flex-basis:300px}
+}
+@media(max-height:700px){.hb-flip{height:84px}}
