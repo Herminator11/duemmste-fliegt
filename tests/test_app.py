@@ -159,14 +159,6 @@ def main():
         pg.locator(".hb-tile").first.locator('[data-act="life-up"]').first.click()
         check("G8b Leeres Herz gibt es zurück", pg.locator('.hb-tile >> nth=0 >> .hb-heart.on').count() == before_l)
 
-        # Dran setzen
-        pg.locator(".hb-tile").nth(1).hover()
-        pg.locator('.hb-tile >> nth=1 >> [data-act="set-turn"]').click()
-        check("G8c 'Dran setzen' wechselt den Spieler", owner() == "Ben")
-        pg.locator(".hb-tile").nth(0).hover()
-        pg.locator('.hb-tile >> nth=0 >> [data-act="set-turn"]').click()
-        check("G8c Zurück zu Anna", owner() == "Anna")
-
         # Chip in Navigation
         go("start")
         check("G9 Chip zeigt laufende Session", pg.is_visible("#chip") and "Session 1" in pg.inner_text("#chip"), pg.inner_text("#chip"))
@@ -198,6 +190,14 @@ def main():
         pg.click("#btn-end"); pg.click("#btn-end-yes")
         check("G15 Session beendet, Timer 00:00", "beendet" in sess() and t() == "00:00")
         check("G15 Aktuelle Frage zählt zur Session (3 gespielt)", played() == 3, played())
+        # Dran setzen: nur zwischen den Sessions, in den Einstellungen des Spielers
+        check("G15b Kein 'Dran setzen' auf der Kachel", pg.locator('.hb-tile >> [data-act="set-turn"]').count() == 0)
+        before_turn = pg.evaluate("Store.turnPlayer().name")
+        other = 0 if before_turn == "Ben" else 1
+        pg.locator(f'.hb-tile >> nth={other} >> [data-act="settings"]').click()
+        pg.locator(f'.hb-tile >> nth={other} >> [data-act="set-turn"]').click()
+        check("G15c 'Dran setzen' in den Einstellungen", pg.evaluate("Store.turnPlayer().name") != before_turn)
+        pg.locator(f'.hb-tile >> nth={other} >> [data-act="settings-done"]').click()
         check("G15 Titel 'Gespielt in Session 1'", "Session 1" in pg.inner_text("#hb-more .hb-cols > div:first-child > h3"))
         check("G16 Min/Sek-Felder wieder da", pg.locator("#inp-min").count() == 1 and pg.input_value("#inp-min") == "2")
 

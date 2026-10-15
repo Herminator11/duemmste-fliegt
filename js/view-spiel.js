@@ -6,7 +6,6 @@
   "use strict";
   var h = U.h, $ = U.$;
   var root = null;
-  var sel = null;                    // gewählter Spieler für die Antwort-Eingabe: { id, turn }
   var flip = { cur: false, next: false };
   var menuOpen = false, confirmEnd = false, confirmNew = false, refocus = false, errMsg = "";
   var draft = null;                  // Eingaben für Min/Sek, die ein Neuzeichnen überleben sollen
@@ -216,12 +215,10 @@
     var askable = Store.askablePlayers().indexOf(p) >= 0;
 
     /* Gleiche Kachel wie auf dem Game Screen (dsp-p), dazu die Regler des Masters */
-    var cls = "dsp-p hb-tile" + (out && !ghost ? " out" : "") + (ghost ? " ghost" : "") + (isTurn ? " turn" : "") + (isTarget && !isTurn ? " target" : "") + (cand ? " cand" : "") + (voted ? " voted" : "") + (loser ? " loser" : "");
+    var cls = "dsp-p hb-tile" + (settingsOpen(p.id) ? " editing" : "") + (out && !ghost ? " out" : "") + (ghost ? " ghost" : "") + (isTurn ? " turn" : "") + (isTarget && !isTurn ? " target" : "") + (cand ? " cand" : "") + (voted ? " voted" : "") + (loser ? " loser" : "");
     var t = h("div", { cls: cls, "data-pid": p.id });
     if (isTurn) U.sync(t);
     t.appendChild(h("div", { cls: "dsp-media" }, [Avatar.render(p)]));
-    t.appendChild(h("button", { type: "button", cls: "hb-av", "aria-label": "Antwort von " + p.name + " eintragen", title: "Antwort von " + p.name + " eintragen",
-      on: { click: function () { sel = { id: p.id, turn: ctx.tp ? ctx.tp.id : null }; refocus = true; redraw(); } } }));
 
     /* Ein Kreis je Frage, die dieser Spieler in dieser Session bekommen hat (der Master sieht sie sofort, der laufende blinkt) */
     var asked = Store.askedList(p.id);
@@ -241,17 +238,8 @@
     if (ghost) t.appendChild(h("span", { cls: "dsp-ghost" }, ["Geist"]));
     if (cnt) t.appendChild(h("span", { cls: "dsp-pill" }, [Icons.icon("vote"), " " + cnt + (cnt === 1 ? " Stimme" : " Stimmen")]));
 
-    /* Nur Master: erscheint beim Darüberfahren (und bei Tastaturfokus) */
-    var hov = h("div", { cls: "hb-hov" });
-    if (Store.isActive() && askable && !isTurn) hov.appendChild(h("button", { type: "button", cls: "btn btn-sm", "data-act": "set-turn", text: "Dran setzen",
-      on: { click: function () { Store.setTurn(p.id); redraw(); } } }));
-    if (out && !ghost) hov.appendChild(h("button", { type: "button", cls: "btn btn-sm btn-main", "data-act": "make-ghost", on: { click: function () { Store.setGhost(p.id, { vote: true, questions: true }); redraw(); } } }, [Icons.icon("ghost"), " Zum Geist machen"]));
-    if (ghost) hov.appendChild(h("button", { type: "button", cls: "btn btn-sm", "data-act": "end-ghost", text: "Kein Geist mehr", on: { click: function () { Store.setGhost(p.id, null); redraw(); } } }));
-    if (hov.children.length) t.appendChild(hov);
-
     if (settingsOpen(p.id)) {
-      var pop = h("div", { cls: "hb-pop", role: "dialog", "aria-label": "Einstellungen von " + p.name }, [h("h4", { text: p.name }), settings(p)]);
-      t.appendChild(pop);
+      t.appendChild(h("div", { cls: "hb-pop", role: "dialog", "aria-label": "Einstellungen von " + p.name }, [settings(p, !!Store.turnPlayer() && Store.turnPlayer().id === p.id, askable)]));
     }
     return t;
   }
@@ -261,9 +249,7 @@
   /* ---------- Feste Leiste unten: Frage zum Umdrehen, Antwort eintragen ---------- */
   function currentTarget() {
     var tp = Store.isActive() ? Store.turnPlayer() : null;
-    var list = Store.askablePlayers();
-    if (sel && list.some(function (p) { return p.id === sel.id; }) && sel.turn === (tp ? tp.id : null)) return Store.findPlayer(sel.id);
-    return tp || list[0] || null;
+    return tp || Store.askablePlayers()[0] || null;
   }
 
   /* „Danach“: Vorschau auf die nächste Frage, zum Umdrehen (Frage vorn, Antwort hinten). Die aktuelle Frage ist nie verdeckt. */
@@ -283,7 +269,7 @@
   function send(who, result) {
     var r = Store.commitAnswer(who.id, { result: result });
     hint = r.ok ? (r.advanced ? "" : "Das war die letzte Frage. Beende die Session, wenn ihr fertig seid.") : (r.error || "");
-    if (r.ok) { sel = null; flip.next = false; }
+    if (r.ok) flip.next = false;
     refocus = true; redraw();
   }
 
@@ -313,41 +299,37 @@
     var answer = h("div", { cls: "hb-answer" });
     if (!tgt || !who) {
       answer.appendChild(h("p", { cls: "hint", text: tgt ? "Niemand kann gerade Fragen bekommen." : "" }));
-    } else {
+    } else if (tgt.live) {
+      /* Antwort des Spielers, der dran ist: leer + Enter = richtig, Text + Enter = falsch. Erklärung steht in den Tooltips. */
       var cur0 = entry.statements[who.id] || { text: "", result: null };
-      var who$ = h("select", { cls: "sel", id: "hb-who", "aria-label": "Antwort von", on: { change: function (e) {
-        var tp = Store.isActive() ? Store.turnPlayer() : null;
-        sel = { id: e.target.value, turn: tp ? tp.id : null }; hint = ""; refocus = true; redraw();
-      } } });
-      Store.askablePlayers().forEach(function (p) { who$.appendChild(h("option", { value: p.id, text: p.name })); });
-      who$.value = who.id;
-      var inp = h("input", { type: "text", id: "hb-ans", value: cur0.text, autocomplete: "off", maxlength: "500", placeholder: tgt.live ? "Leer + Enter = richtig. Falsche Antwort von " + who.name + " eintippen + Enter = falsch" : "Antwort von " + who.name, "aria-label": "Antwort von " + who.name,
+      var inp = h("input", { type: "text", id: "hb-ans", value: cur0.text, autocomplete: "off", maxlength: "500", placeholder: "Falsche Antwort von " + who.name + " eintippen", "aria-label": "Falsche Antwort von " + who.name,
         on: {
           input: function () { Store.setStatement(who.id, { text: inp.value }); hint = ""; },
           keydown: function (ev) {
             if (ev.key === "Enter") {
               ev.preventDefault();
-              if (!tgt.live || ev.repeat) return;   // gehaltene Taste zählt nicht mehrfach
-              /* Leeres Feld + Enter = richtig, mit Text + Enter = falsch */
+              if (ev.repeat) return;   // gehaltene Taste zählt nicht mehrfach
               send(who, inp.value.trim() ? "falsch" : "richtig");
-            } else if (ev.altKey && ev.code === "Digit1") { ev.preventDefault(); tgt.live ? send(who, "richtig") : setResult(who, "richtig"); }
-            else if (ev.altKey && ev.code === "Digit2") { ev.preventDefault(); tgt.live ? send(who, "falsch") : setResult(who, "falsch"); }
+            } else if (ev.altKey && ev.code === "Digit1") { ev.preventDefault(); send(who, "richtig"); }
+            else if (ev.altKey && ev.code === "Digit2") { ev.preventDefault(); send(who, "falsch"); }
           }
         } });
-      var res = h("div", { cls: "rgroup", role: "group", "aria-label": "Ergebnis für " + who.name });
+      answer.appendChild(h("div", { cls: "hb-arow" }, [
+        inp,
+        h("button", { type: "button", cls: "ibtn hb-ok", id: "btn-richtig", "data-result": "richtig", title: "Richtig: Enter bei leerem Feld oder Alt+1", "aria-label": "Richtig",
+          on: { click: function () { send(who, "richtig"); } } }, [Icons.icon(SYMBOL.richtig)]),
+        h("button", { type: "button", cls: "ibtn hb-bad", id: "btn-falsch", "data-result": "falsch", title: "Falsch senden: Enter mit eingetippter falscher Antwort oder Alt+2", "aria-label": "Falsch senden",
+          on: { click: function () { send(who, "falsch"); } } }, [Icons.icon(SYMBOL.falsch)])
+      ]));
+      if (hint) answer.appendChild(h("p", { cls: "err hb-hint", id: "hb-hint", role: "alert", text: hint }));
+    } else {
+      /* Nach Rundenende: Antworten ändert man an den Kreisen oder unter „Aussagen je Spieler“ */
       var pub = entry.published;
-      answer.appendChild(h("div", { cls: "hb-arow" }, [h("label", { cls: "hb-who", for: "hb-who" }, ["Antwort von", who$]), inp]));
-      var row2 = h("div", { cls: "hb-arow" });
-      var ok = cur0.result === "richtig", bad = cur0.result === "falsch";
-      row2.appendChild(h("button", { type: "button", cls: "rbtn hb-ok" + (tgt.live ? " solid" : "") + (!tgt.live && ok ? " on r-richtig" : ""), id: "btn-richtig", "data-result": "richtig", title: "Richtig (Enter bei leerem Feld, oder Alt+1)",
-        on: { click: function () { tgt.live ? send(who, "richtig") : setResult(who, "richtig"); } } }, [Icons.icon(SYMBOL.richtig), h("span", { cls: "rlab", text: "Richtig" }), tgt.live ? h("kbd", { text: "↵" }) : null]));
-      row2.appendChild(h("button", { type: "button", cls: "rbtn hb-bad" + (tgt.live ? " solid" : "") + (!tgt.live && bad ? " on r-falsch" : ""), id: "btn-falsch", "data-result": "falsch", title: "Falsch (Antwort eintippen und Enter, oder Alt+2)",
-        on: { click: function () { tgt.live ? send(who, "falsch") : setResult(who, "falsch"); } } }, [Icons.icon(SYMBOL.falsch), h("span", { cls: "rlab", text: tgt.live ? "Falsch senden" : "Falsch" }), tgt.live ? h("kbd", { text: "↵" }) : null]));
-      if (!tgt.live) row2.appendChild(h("button", { cls: "btn btn-sm" + (pub ? "" : " btn-main"), id: "btn-publish", type: "button", text: pub ? "Auf Game Screen verbergen" : "Auf Game Screen zeigen",
-        on: { click: function () { Store.setPublished(!pub); redraw(); } } }));
-      answer.appendChild(row2);
-      answer.appendChild(h("p", { cls: hint ? "err hb-hint" : "hint hb-hint", id: "hb-hint", role: hint ? "alert" : null,
-        text: hint || (tgt.live ? "Enter bei leerem Feld = richtig. Falsche Antwort eintippen und Enter = falsch. Beides geht gleich zum nächsten Spieler." : "Die Antworten zur letzten Frage kannst du hier noch ändern.") }));
+      answer.appendChild(h("div", { cls: "hb-arow" }, [
+        h("button", { cls: "btn" + (pub ? "" : " btn-main"), id: "btn-publish", type: "button", text: pub ? "Auf Game Screen verbergen" : "Auf Game Screen zeigen",
+          on: { click: function () { Store.setPublished(!pub); redraw(); } } })
+      ]));
+      answer.appendChild(h("p", { cls: "hint hb-hint", id: "hb-hint", text: "Antworten ändern: Kreis auf der Kachel anklicken." }));
     }
     bar.appendChild(answer);
 
@@ -379,6 +361,7 @@
   }
 
   function key(ev) {
+    if (ev.key === "Escape" && (openDot || Object.keys(openSet).some(function (k) { return openSet[k]; }))) { openDot = null; openSet = {}; redraw(); }
     if (/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) || document.activeElement.isContentEditable) return;
     if (ev.altKey || ev.ctrlKey || ev.metaKey) return;
     if (ev.key === "f" || ev.key === "F") { toggleFullscreen(); return; }
@@ -570,44 +553,56 @@
     return wrap;
   }
 
-  /* Einstellungen eines Spielers. Bei 0 Leben: ausgeschieden lassen (ausgegraut, ganz draußen), Geist (mit Wahlrecht und/oder Fragen)
-     oder aus der Ansicht entfernen. Ein Geist steht nie zur Wahl. */
-  function buildPlayerSettings(p, out, ghost) {
+  /* Einstellungen eines Spielers, liegen über der ausgegrauten Kachel. Alles wird sofort gespeichert, das Zahnrad (oder „Fertig“) schließt nur.
+     Bei 0 Leben: ausgeschieden lassen, Geist (mit Wahlrecht und/oder Fragen) oder aus der Ansicht entfernen. Ein Geist steht nie zur Wahl. */
+  function buildPlayerSettings(p, out, ghost, isTurn, askable) {
     var box = h("div", { cls: "pset", "data-pset": p.id });
+    var nameIn = h("input", { type: "text", cls: "pset-name", maxlength: "40", value: p.name, autocomplete: "off", "aria-label": "Name",
+      on: { change: function () {
+        if (!nameIn.value.trim() || nameIn.value.trim() === p.name) { nameIn.value = p.name; return; }
+        if (!Store.renamePlayer(p.id, nameIn.value)) { nameIn.value = p.name; setError("Der Name ist schon vergeben."); }
+        redraw();
+      }, keydown: function (ev) { if (ev.key === "Enter") { ev.preventDefault(); nameIn.blur(); } } } });
+    box.appendChild(nameIn);
+
+    var lives = h("div", { cls: "pset-row", role: "group", "aria-label": "Leben von " + p.name }, [
+      h("button", { type: "button", cls: "ibtn pset-btn", "data-act": "life-down", title: "Ein Leben abziehen", "aria-label": "Leben abziehen", disabled: p.lives <= 0, text: "−",
+        on: { click: function () { Store.adjustLives(p.id, -1); redraw(); } } }),
+      h("span", { cls: "pset-lives" }, [Icons.icon("hearts", "h-full"), " " + p.lives]),
+      h("button", { type: "button", cls: "ibtn pset-btn", "data-act": "life-up", title: "Ein Leben hinzufügen", "aria-label": "Leben hinzufügen", text: "+",
+        on: { click: function () { Store.adjustLives(p.id, 1); redraw(); } } })
+    ]);
+    box.appendChild(lives);
+
+    var acts = h("div", { cls: "pset-row pset-acts" });
+    /* Wer als Nächster dran ist, bestimmt der Master nur zwischen den Sessions. Während einer Session geht es von selbst reihum. */
+    if (!Store.isActive() && askable && !isTurn) acts.appendChild(h("button", { type: "button", cls: "btn btn-sm", "data-act": "set-turn", text: "Als Nächsten dran setzen",
+      on: { click: function () { Store.setTurn(p.id); redraw(); } } }));
+    if (isTurn && !Store.isActive()) acts.appendChild(h("span", { cls: "hint", text: "Ist als Nächster dran." }));
     if (out) {
-      box.appendChild(h("p", { cls: "hint", style: "margin:0 0 8px", text: p.name + " hat keine Leben mehr. Was soll passieren?" }));
-      var seg = function (label, on, fn, act) {
-        return h("button", { type: "button", cls: "seg" + (on ? " on" : ""), "data-pmode": act, "aria-pressed": on ? "true" : "false", on: { click: fn } }, [label]);
-      };
-      box.appendChild(h("div", { cls: "seggroup", role: "group", "aria-label": "Status von " + p.name }, [
-        seg("Ausgeschieden", !ghost, function () { Store.setGhost(p.id, null); redraw(); }, "out"),
-        seg("Geist", ghost, function () { Store.setGhost(p.id, { vote: true, questions: true }); redraw(); }, "ghost")
-      ]));
-      box.appendChild(h("p", { cls: "hint", style: "margin:6px 0 8px", text: ghost
-        ? "Ein Geist steht nie zur Wahl. Du bestimmst, ob er mitwählt und ob er weiter Fragen bekommt."
-        : "Ausgeschieden: ausgegraut, bekommt keine Fragen, wählt nicht mit und steht nicht zur Wahl." }));
-      if (ghost) {
-        var chk = function (key, label) {
-          return h("label", { cls: "rule" }, [h("input", { type: "checkbox", checked: !!p.ghost[key], "data-ghost": key,
-            on: { change: function (e) { var g = { vote: p.ghost.vote, questions: p.ghost.questions }; g[key] = e.target.checked; Store.setGhost(p.id, g); redraw(); } } }), label]);
-        };
-        box.appendChild(chk("vote", "Darf weiter mitwählen"));
-        box.appendChild(chk("questions", "Bekommt weiter Fragen"));
-      }
-    } else {
-      box.appendChild(h("p", { cls: "hint", style: "margin:0 0 8px", text: "Der Geist-Modus ist erst bei 0 Leben wählbar." }));
+      acts.appendChild(h("button", { type: "button", cls: "btn btn-sm" + (ghost ? " btn-main" : ""), "data-act": ghost ? "end-ghost" : "make-ghost", "aria-pressed": ghost ? "true" : "false",
+        on: { click: function () { Store.setGhost(p.id, ghost ? null : { vote: true, questions: true }); redraw(); } } }, [Icons.icon("ghost"), ghost ? " Ist Geist" : " Zum Geist machen"]));
     }
     if (confirmRemove[p.id]) {
-      box.appendChild(h("div", { cls: "actions" }, [
-        h("span", { text: p.name + " wirklich entfernen?" }),
-        h("button", { cls: "btn btn-danger btn-sm", type: "button", "data-act": "remove-yes", text: "Ja, entfernen",
-          on: { click: function () { Store.removePlayer(p.id); delete openSet[p.id]; delete confirmRemove[p.id]; redraw(); } } }),
-        h("button", { cls: "btn btn-sm", type: "button", text: "Abbrechen", on: { click: function () { confirmRemove[p.id] = false; redraw(); } } })
-      ]));
+      acts.appendChild(h("button", { cls: "btn btn-danger btn-sm", type: "button", "data-act": "remove-yes", text: "Ja, entfernen",
+        on: { click: function () { Store.removePlayer(p.id); delete openSet[p.id]; delete confirmRemove[p.id]; redraw(); } } }));
+      acts.appendChild(h("button", { cls: "btn btn-sm", type: "button", text: "Abbrechen", on: { click: function () { confirmRemove[p.id] = false; redraw(); } } }));
     } else {
-      box.appendChild(h("div", { cls: "actions" }, [h("button", { cls: "btn btn-sm btn-text", type: "button", "data-act": "remove", text: "Aus der Ansicht entfernen",
-        on: { click: function () { confirmRemove[p.id] = true; redraw(); } } })]));
+      acts.appendChild(h("button", { cls: "btn btn-sm btn-text", type: "button", "data-act": "remove", text: "Aus der Liste entfernen",
+        on: { click: function () { confirmRemove[p.id] = true; redraw(); } } }));
     }
+    box.appendChild(acts);
+
+    if (out && ghost) {
+      var chk = function (key, label) {
+        return h("label", { cls: "rule" }, [h("input", { type: "checkbox", checked: !!p.ghost[key], "data-ghost": key,
+          on: { change: function (e) { var g = { vote: p.ghost.vote, questions: p.ghost.questions }; g[key] = e.target.checked; Store.setGhost(p.id, g); redraw(); } } }), label]);
+      };
+      box.appendChild(chk("vote", "Darf weiter mitwählen"));
+      box.appendChild(chk("questions", "Bekommt weiter Fragen"));
+    }
+    box.appendChild(h("button", { type: "button", cls: "btn btn-sm btn-main pset-done", "data-act": "settings-done", text: "Fertig",
+      on: { click: function () { toggleSettings(p.id); redraw(); } } }));
     return box;
   }
 
@@ -683,12 +678,12 @@
   function openSettings(id) { openSet[id] = true; }
   function settingsOpen(id) { return !!openSet[id]; }
   function toggleSettings(id) { openSet[id] = !openSet[id]; confirmRemove[id] = false; }
-  function settings(p) { return buildPlayerSettings(p, p.lives <= 0, Store.isGhost(p)); }
+  function settings(p, isTurn, askable) { return buildPlayerSettings(p, p.lives <= 0, Store.isGhost(p), isTurn, askable); }
   function buildVoteBox() { var s = Store.curSession(); return s && s.status === "ended" && (Store.voteOpen() || s.vote) ? buildVote(s) : null; }
   function buildLogBox() { return Store.state.players.length ? buildPlayerLog(Store.state) : null; }
 
   Views.spiel = { render: render, refresh: function () { redraw(); }, tick: paintTime, key: key,
     autoResolve: autoResolve,
     net: function (kind) { if (kind === "data") updateVoteOnline(); },
-    reset: function () { sel = null; menuOpen = false; openDot = null; editRow = null; confirmEnd = false; confirmNew = false; errMsg = ""; draft = null; voteMsg = null; } };
+    reset: function () { menuOpen = false; openDot = null; editRow = null; confirmEnd = false; confirmNew = false; errMsg = ""; draft = null; voteMsg = null; } };
 })();

@@ -839,13 +839,42 @@ body[data-view="anzeige"] .calm-btn,body[data-view="spiel"] .calm-btn{display:no
 .hb-top .hb-headL .hb-ctrl{width:auto;max-width:none;margin:0}
 
 /* Master: Antwort-Fenster an den Kreisen kompakt (auf dem Game Screen bleibt das große Banner für den Fernseher) */
-.hb-tile .dsp-pop{left:8px;right:auto;top:38px;width:min(320px,calc(100% - 16px));padding:var(--s3) var(--s4);border-width:2px;border-radius:var(--r-m);align-items:flex-start;text-align:left}
-.hb-tile .dsp-pa{align-items:flex-start;gap:var(--s1)}
-.hb-tile .dsp-pop .dsp-plab{font-size:var(--fs-xs);letter-spacing:.1em}
-.hb-tile .dsp-pq{font-size:var(--fs-m);line-height:1.25}
-.hb-tile .dsp-prow{align-items:flex-start;gap:var(--s1);margin-top:var(--s1);padding-top:var(--s2)}
-.hb-tile .dsp-pop .dsp-correct{font-size:var(--fs-s)}
-.hb-tile .dsp-pop .dsp-pt{justify-content:flex-start;font-size:var(--fs-m)}
+.dsp-p .dsp-pop{left:8px;right:auto;top:38px;width:min(320px,calc(100% - 16px));padding:var(--s3) var(--s4);border-width:2px;border-radius:var(--r-m);align-items:flex-start;text-align:left}
+.dsp-p .dsp-pa{align-items:flex-start;gap:var(--s1)}
+.dsp-p .dsp-pop .dsp-plab{font-size:var(--fs-xs);letter-spacing:.1em}
+.dsp-p .dsp-pq{font-size:var(--fs-m);line-height:1.25}
+.dsp-p .dsp-prow{align-items:flex-start;gap:var(--s1);margin-top:var(--s1);padding-top:var(--s2)}
+.dsp-p .dsp-pop .dsp-correct{font-size:var(--fs-s)}
+.dsp-p .dsp-pop .dsp-pt{justify-content:flex-start;font-size:var(--fs-m)}
 .hb-tile .hb-edit{margin-top:var(--s2);padding-top:var(--s3);gap:var(--s2)}
 .hb-tile .hb-edit-in{min-height:44px;font-size:var(--fs-m)}
 .hb-tile .hb-edit-res .rbtn{height:44px}
+
+/* ---------- Antwort-Fenster erreichbar: Brücke über die Lücke, Fenster nimmt die Maus an, solange es sichtbar ist ---------- */
+.hb-tile .dsp-pop{pointer-events:auto}
+.hb-tile .dsp-pop::before{content:"";position:absolute;left:-12px;right:-12px;top:-16px;height:16px}
+
+/* ---------- Untere Leiste: Eingabe mit zwei Icon-Knöpfen ---------- */
+.hb-arow{flex-wrap:nowrap}
+.hb-answer input[type=text]{flex:1 1 220px;min-width:0}
+.hb-ok{border-color:#2e8b57;color:#5fd0a4}
+.hb-ok:hover{background:color-mix(in srgb,#3ddc97 22%,transparent);border-color:#3ddc97}
+.hb-bad{border-color:var(--danger);color:var(--danger)}
+.hb-bad:hover{background:color-mix(in srgb,var(--danger) 22%,transparent);border-color:var(--danger)}
+.hb-ok .ic,.hb-bad .ic{font-size:1.5rem}
+
+/* ---------- Spieler-Einstellungen: liegen über der ausgegrauten Kachel ---------- */
+.hb-tile.editing .dsp-media{filter:grayscale(1);opacity:.3}
+.hb-tile.editing .dsp-name,.hb-tile.editing .dsp-dots,.hb-tile.editing .dsp-pill,.hb-tile.editing .dsp-ghost{opacity:.25;pointer-events:none}
+.dsp-hearts{z-index:6}
+.hb-pop{position:absolute;inset:0;left:0;top:0;transform:none;width:auto;z-index:5;display:flex;align-items:stretch;padding:54px var(--s4) var(--s3);overflow:auto;
+  border:0;border-radius:calc(var(--r-l) - 3px);background:color-mix(in srgb,var(--ground) 78%,transparent);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);box-shadow:none;font-size:var(--fs-s)}
+.hb-pop .pset{display:flex;flex-direction:column;gap:var(--s2);width:100%;margin:auto 0;padding:0;border:0;background:transparent}
+.pset-name{width:100%;min-height:40px;padding:0 var(--s3);border:2px solid var(--edge);border-radius:var(--r-s);background:var(--ground);color:var(--text);font:inherit;font-family:var(--display);font-weight:800;font-size:var(--fs-l)}
+.pset-name:focus{outline:none;border-color:var(--c);box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 35%,transparent)}
+.pset-row{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap}
+.pset-lives{display:inline-flex;align-items:center;gap:var(--s2);min-width:64px;justify-content:center;font-weight:800;font-size:var(--fs-xl);color:var(--danger)}
+.pset-btn{width:40px;height:40px;font-size:var(--fs-xl);font-weight:800}
+.pset-acts .btn{min-height:40px}
+.pset-done{align-self:flex-end}
+.hb-pop .rule{min-height:0;padding:var(--s1) 0}
