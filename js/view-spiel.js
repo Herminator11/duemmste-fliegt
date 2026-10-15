@@ -48,15 +48,21 @@
   /* ---------- Feste Leiste oben ---------- */
   function buildTop(s) {
     var st = Store.state;
-    var left = h("div", { cls: "hb-left" }, [
-      h("a", { cls: "hb-brand", href: "#/start", text: "Der Dümmste fliegt" }),
-      h("div", { cls: "time", id: "time", role: "timer", text: "00:00" }),
-      h("div", { cls: "sess" }, [
-        h("strong", { text: s ? "Session " + s.n : "Neues Spiel" }),
-        h("span", { text: s ? (s.status === "running" ? "läuft" : s.status === "paused" ? "pausiert" : "beendet") : "noch keine Session" })
+    /* Erste Zeile wie auf dem Game Screen: Runde, Titel, Zeit, Modus, Vollbild. Dazu kommt „Spiel“ nur für den Master. */
+    var status = s ? (s.status === "running" ? "läuft" : s.status === "paused" ? "pausiert" : "beendet") : "";
+    var head = h("div", { cls: "dsp-head" }, [
+      h("span", { cls: "dsp-round sess", id: "dsp-round" }, [Icons.icon("round-star"), " " + (s ? "Session " + s.n + " · " + status : "Bereit")]),
+      h("a", { cls: "dsp-title hb-brand", href: "#/start", text: "Der Dümmste fliegt" }),
+      h("span", { cls: "dsp-right" }, [
+        h("span", { cls: "dsp-timer time", id: "time", role: "timer" }, [Icons.icon("stopwatch"), h("span", { id: "time-text", text: "00:00" })]),
+        h("span", { cls: "dsp-mode", id: "dsp-mode" }, [Icons.icon(st.settings.voteMode === "public" ? "all-seeing-eye" : "domino-mask"), " " + (st.settings.voteMode === "public" ? "Offene Stimmen" : "Anonyme Stimmen")]),
+        h("button", { cls: "btn btn-sm", id: "hb-fs", type: "button", title: "Vollbild (F)", text: "Vollbild", on: { click: toggleFullscreen } }),
+        h("button", { cls: "btn btn-sm", id: "hb-menu", type: "button", "aria-expanded": menuOpen ? "true" : "false",
+          on: { click: function () { menuOpen = !menuOpen; redraw(); } } }, [Icons.icon("gear"), " Spiel"])
       ])
     ]);
 
+    /* Nur für den Master: Start, Pause, Ende, Dauer */
     var ctrl = h("div", { cls: "hb-ctrl" });
     if (!s || s.status === "ended") {
       var keep = function () { draft = { min: $("inp-min").value, sec: $("inp-sec").value }; };
@@ -80,12 +86,7 @@
     }
     if (errMsg) ctrl.appendChild(h("p", { cls: "err hb-err", id: "err", role: "alert", text: errMsg }));
 
-    var right = h("div", { cls: "hb-right" }, [
-      h("button", { cls: "btn btn-sm", id: "hb-menu", type: "button", "aria-expanded": menuOpen ? "true" : "false",
-        on: { click: function () { menuOpen = !menuOpen; redraw(); } } }, [Icons.icon("gear"), " Spiel"]),
-      h("button", { cls: "btn btn-sm", id: "hb-fs", type: "button", title: "Vollbild (F)", on: { click: toggleFullscreen } }, [Icons.icon("expand"), " Vollbild"])
-    ]);
-    var bar = h("header", { cls: "hb-top" }, [left, ctrl, right]);
+    var bar = h("header", { cls: "hb-top" }, [head, ctrl]);
     if (menuOpen) bar.appendChild(buildMenu());
     return bar;
   }
@@ -129,7 +130,7 @@
       return stage;
     }
     var ctx = { tp: active ? Store.turnPlayer() : null, target: currentTarget(), entry: tgt ? tgt.entry : null, pv: pv };
-    var grid = h("div", { cls: "hb-grid", id: "hb-players" });
+    var grid = h("div", { cls: "dsp-grid", id: "hb-players" });
     st.players.forEach(function (p) { grid.appendChild(tile(p, ctx)); });
     stage.appendChild(grid);
 
@@ -173,22 +174,29 @@
     return h("div", { cls: "hb-edit" }, [inp, res]);
   }
 
-  /* Kreis je Frage mit Fenster: Hover zeigt Frage, richtige Antwort und Antwort des Spielers, Klick hält das Fenster offen zum Ändern. */
+  /* Kreis je Frage, gleiche Bauweise wie auf dem Game Screen (Banner beim Darüberfahren). Klick hält das Banner offen und öffnet den Editor. */
   function dotEl(p, d, i) {
     var key = refKey(p.id, d.ref), isOpen = openDot === key;
-    var verdict = d.result ? U.RESULT_LABEL[d.result] : d.live ? "läuft gerade" : "offen";
     var tone = d.result || "keine";
-    var pop = h("span", { cls: "hb-dpop res-" + tone, role: "group", "aria-label": "Frage " + (i + 1) + " von " + p.name }, [
-      h("small", { cls: "hb-dplab", text: "Frage " + (i + 1) + " · " + verdict }),
-      h("span", { cls: "hb-dpq", text: d.question }),
-      h("small", { cls: "hb-dpc", text: "Richtig: " + d.correct }),
-      h("span", { cls: "hb-dpa" }, [d.text ? p.name + ": " + d.text : h("i", { text: p.name + " hat nicht geantwortet" })]),
-      isOpen ? answerEditor(p, d.ref, d.text, d.result, function () { openDot = null; redraw(); }) : h("small", { cls: "hb-dphint", text: "Klicken zum Ändern" })
+    var verdict = d.result ? U.RESULT_LABEL[d.result] : d.live ? "läuft gerade" : "offen";
+    var head = d.result === "richtig" ? "Richtig beantwortet" : d.result === "falsch" ? "Falsch beantwortet" : d.live ? "Läuft gerade" : "Nicht beantwortet";
+    var pos = "--di:" + i;
+    var pop = h("span", { cls: "dsp-pop res-" + tone, role: "group", "aria-label": "Frage " + (i + 1) + " von " + p.name }, [
+      h("span", { cls: "dsp-pa" }, [
+        h("small", { cls: "dsp-plab", text: "Frage " + (i + 1) + " · " + head }),
+        h("span", { cls: "dsp-pq", text: d.question }),
+        h("span", { cls: "dsp-prow" }, [
+          h("small", { cls: "dsp-correct", text: "Richtig: " + d.correct }),
+          h("span", { cls: "dsp-pt" }, [d.text ? p.name + ": " + d.text : h("i", { cls: "dsp-none", text: p.name + " hat nicht geantwortet" })]),
+          isOpen ? answerEditor(p, d.ref, d.text, d.result, function () { openDot = null; redraw(); }) : h("small", { cls: "hb-dphint", text: "Klicken zum Ändern" })
+        ])
+      ])
     ]);
-    var btn = h("button", { type: "button", cls: "hb-dbtn", "data-dot": i, "aria-expanded": isOpen ? "true" : "false", "aria-label": "Frage " + (i + 1) + " von " + p.name + ": " + verdict,
+    var btn = h("button", { type: "button", cls: "dd-btn", "data-dot": i, "aria-expanded": isOpen ? "true" : "false", style: pos,
+      "aria-label": "Frage " + (i + 1) + " von " + p.name + ": " + verdict,
       on: { click: function () { openDot = isOpen ? null : key; redraw(); } } },
       [h("i", { cls: "dd" + (d.result ? " r-" + d.result : "") + (d.live ? " live" : "") })]);
-    return h("span", { cls: "hb-dwrap" + (isOpen ? " open" : "") }, [btn, pop]);
+    return h("span", { cls: "dd-wrap" + (isOpen ? " open" : "") }, [btn, pop]);
   }
 
   function tile(p, ctx) {
@@ -196,40 +204,40 @@
     var isTurn = !!ctx.tp && ctx.tp.id === p.id;
     var isTarget = !!ctx.target && ctx.target.id === p.id;
     var pv = ctx.pv, st = Store.state;
-    var voted = pv.voting && st.settings.showVoted && pv.voted.indexOf(p.id) >= 0;
+    var isVoter = !!pv.voting && st.settings.showVoted && pv.voterIds.indexOf(p.id) >= 0;
+    var voted = isVoter && pv.voted.indexOf(p.id) >= 0;
     var cand = pv.voting && pv.voteRound > 1 && pv.candidates.indexOf(p.id) >= 0;
     var loser = !!(pv.vote && pv.vote.loserIds.indexOf(p.id) >= 0);
     var cnt = pv.vote && pv.vote.counts[p.id] ? pv.vote.counts[p.id] : 0;
     var askable = Store.askablePlayers().indexOf(p) >= 0;
 
-    var cls = "hb-tile" + (out && !ghost ? " out" : "") + (ghost ? " ghost" : "") + (isTurn ? " turn" : "") + (isTarget ? " target" : "") + (cand ? " cand" : "") + (loser ? " loser" : "");
+    /* Gleiche Kachel wie auf dem Game Screen (dsp-p), dazu die Regler des Masters */
+    var cls = "dsp-p hb-tile" + (out && !ghost ? " out" : "") + (ghost ? " ghost" : "") + (isTurn ? " turn" : "") + (isTarget && !isTurn ? " target" : "") + (cand ? " cand" : "") + (voted ? " voted" : "") + (loser ? " loser" : "");
     var t = h("div", { cls: cls, "data-pid": p.id });
-
+    t.appendChild(h("div", { cls: "dsp-media" }, [Avatar.render(p)]));
     t.appendChild(h("button", { type: "button", cls: "hb-av", "aria-label": "Antwort von " + p.name + " eintragen", title: "Antwort von " + p.name + " eintragen",
-      on: { click: function () { sel = { id: p.id, turn: ctx.tp ? ctx.tp.id : null }; refocus = true; redraw(); } } }, [Avatar.render(p, 84)]));
+      on: { click: function () { sel = { id: p.id, turn: ctx.tp ? ctx.tp.id : null }; refocus = true; redraw(); } } }));
 
-    t.appendChild(h("div", { cls: "hb-top-row" }, [
-      heartsRow(p, st.settings.startLives),
-      h("button", { type: "button", cls: "hb-gear", "data-act": "settings", "aria-label": "Einstellungen von " + p.name, "aria-expanded": settingsOpen(p.id) ? "true" : "false", title: "Einstellungen",
-        on: { click: function () { toggleSettings(p.id); redraw(); } } }, [Icons.icon("gear")])
-    ]));
-
-    var foot = h("div", { cls: "hb-foot" }, [h("span", { cls: "hb-name", text: p.name })]);
-    if (isTurn) foot.appendChild(h("span", { cls: "turn-tag", text: "dran" }));
-    else if (ghost) foot.appendChild(h("span", { cls: "ghost-tag", text: "Geist" }));
-    t.appendChild(foot);
-
-    /* Ein Kreis je Frage, die dieser Spieler in dieser Session bekommen hat. Der laufende Kreis blinkt und färbt sich mit dem Ergebnis. */
+    /* Ein Kreis je Frage, die dieser Spieler in dieser Session bekommen hat (der Master sieht sie sofort, der laufende blinkt) */
     var asked = Store.askedList(p.id);
     if (asked.length) {
-      var dots = h("span", { cls: "hb-dots", role: "group", "aria-label": asked.length + (asked.length === 1 ? " Frage" : " Fragen") + " in dieser Session" });
+      var dots = h("span", { cls: "dsp-dots", role: "group", "aria-label": asked.length + (asked.length === 1 ? " Frage" : " Fragen") + " in dieser Session" });
       asked.forEach(function (d, i) { dots.appendChild(dotEl(p, d, i)); });
       t.appendChild(dots);
     }
-    if (voted) t.appendChild(h("span", { cls: "hb-voted", role: "img", "aria-label": "hat gestimmt" }, [Icons.icon("check-mark")]));
-    if (cnt) t.appendChild(h("span", { cls: "dsp-pill hb-pill" }, [Icons.icon("vote"), " " + cnt]));
 
-    /* Erscheint beim Darüberfahren (und bei Tastaturfokus) */
+    t.appendChild(h("span", { cls: "dsp-hearts" }, [
+      heartsRow(p, st.settings.startLives),
+      isVoter ? h("span", { cls: "dsp-check" + (voted ? " on" : ""), role: "img", "aria-label": voted ? "hat gestimmt" : "noch nicht gestimmt" }, [Icons.icon("check-mark")]) : null,
+      h("button", { type: "button", cls: "hb-gear", "data-act": "settings", "aria-label": "Einstellungen von " + p.name, "aria-expanded": settingsOpen(p.id) ? "true" : "false", title: "Einstellungen",
+        on: { click: function () { toggleSettings(p.id); redraw(); } } }, [Icons.icon("gear")])
+    ]));
+    t.appendChild(h("span", { cls: "dsp-name", text: p.name }));
+    if (isTurn) t.appendChild(h("span", { cls: "dsp-turn", role: "status" }, [Icons.icon("round-star"), " Dran"]));
+    else if (ghost) t.appendChild(h("span", { cls: "dsp-ghost" }, ["Geist"]));
+    if (cnt) t.appendChild(h("span", { cls: "dsp-pill" }, [Icons.icon("vote"), " " + cnt + (cnt === 1 ? " Stimme" : " Stimmen")]));
+
+    /* Nur Master: erscheint beim Darüberfahren (und bei Tastaturfokus) */
     var hov = h("div", { cls: "hb-hov" });
     if (Store.isActive() && askable && !isTurn) hov.appendChild(h("button", { type: "button", cls: "btn btn-sm", "data-act": "set-turn", text: "Dran setzen",
       on: { click: function () { Store.setTurn(p.id); redraw(); } } }));
@@ -309,15 +317,15 @@
       } } });
       Store.askablePlayers().forEach(function (p) { who$.appendChild(h("option", { value: p.id, text: p.name })); });
       who$.value = who.id;
-      var inp = h("input", { type: "text", id: "hb-ans", value: cur0.text, autocomplete: "off", maxlength: "500", placeholder: tgt.live ? "Falsche Antwort von " + who.name + " eintippen, dann Enter" : "Antwort von " + who.name, "aria-label": "Antwort von " + who.name,
+      var inp = h("input", { type: "text", id: "hb-ans", value: cur0.text, autocomplete: "off", maxlength: "500", placeholder: tgt.live ? "Leer + Enter = richtig. Falsche Antwort von " + who.name + " eintippen + Enter = falsch" : "Antwort von " + who.name, "aria-label": "Antwort von " + who.name,
         on: {
           input: function () { Store.setStatement(who.id, { text: inp.value }); hint = ""; },
           keydown: function (ev) {
             if (ev.key === "Enter") {
               ev.preventDefault();
-              if (!tgt.live) return;
-              if (!inp.value.trim()) { hint = "Tippe die Antwort ein (gilt als falsch) oder drücke „Richtig“."; refocus = true; redraw(); return; }
-              send(who, "falsch");
+              if (!tgt.live || ev.repeat) return;   // gehaltene Taste zählt nicht mehrfach
+              /* Leeres Feld + Enter = richtig, mit Text + Enter = falsch */
+              send(who, inp.value.trim() ? "falsch" : "richtig");
             } else if (ev.altKey && ev.code === "Digit1") { ev.preventDefault(); tgt.live ? send(who, "richtig") : setResult(who, "richtig"); }
             else if (ev.altKey && ev.code === "Digit2") { ev.preventDefault(); tgt.live ? send(who, "falsch") : setResult(who, "falsch"); }
           }
@@ -327,15 +335,15 @@
       answer.appendChild(h("div", { cls: "hb-arow" }, [h("label", { cls: "hb-who", for: "hb-who" }, ["Antwort von", who$]), inp]));
       var row2 = h("div", { cls: "hb-arow" });
       var ok = cur0.result === "richtig", bad = cur0.result === "falsch";
-      row2.appendChild(h("button", { type: "button", cls: "rbtn hb-ok" + (tgt.live ? " solid" : "") + (!tgt.live && ok ? " on r-richtig" : ""), id: "btn-richtig", "data-result": "richtig", title: "Richtig (Alt+1)",
-        on: { click: function () { tgt.live ? send(who, "richtig") : setResult(who, "richtig"); } } }, [Icons.icon(SYMBOL.richtig), h("span", { cls: "rlab", text: "Richtig" })]));
-      row2.appendChild(h("button", { type: "button", cls: "rbtn hb-bad" + (tgt.live ? " solid" : "") + (!tgt.live && bad ? " on r-falsch" : ""), id: "btn-falsch", "data-result": "falsch", title: "Falsch (Alt+2, oder Antwort eintippen und Enter)",
+      row2.appendChild(h("button", { type: "button", cls: "rbtn hb-ok" + (tgt.live ? " solid" : "") + (!tgt.live && ok ? " on r-richtig" : ""), id: "btn-richtig", "data-result": "richtig", title: "Richtig (Enter bei leerem Feld, oder Alt+1)",
+        on: { click: function () { tgt.live ? send(who, "richtig") : setResult(who, "richtig"); } } }, [Icons.icon(SYMBOL.richtig), h("span", { cls: "rlab", text: "Richtig" }), tgt.live ? h("kbd", { text: "↵" }) : null]));
+      row2.appendChild(h("button", { type: "button", cls: "rbtn hb-bad" + (tgt.live ? " solid" : "") + (!tgt.live && bad ? " on r-falsch" : ""), id: "btn-falsch", "data-result": "falsch", title: "Falsch (Antwort eintippen und Enter, oder Alt+2)",
         on: { click: function () { tgt.live ? send(who, "falsch") : setResult(who, "falsch"); } } }, [Icons.icon(SYMBOL.falsch), h("span", { cls: "rlab", text: tgt.live ? "Falsch senden" : "Falsch" }), tgt.live ? h("kbd", { text: "↵" }) : null]));
       if (!tgt.live) row2.appendChild(h("button", { cls: "btn btn-sm" + (pub ? "" : " btn-main"), id: "btn-publish", type: "button", text: pub ? "Auf Game Screen verbergen" : "Auf Game Screen zeigen",
         on: { click: function () { Store.setPublished(!pub); redraw(); } } }));
       answer.appendChild(row2);
       answer.appendChild(h("p", { cls: hint ? "err hb-hint" : "hint hb-hint", id: "hb-hint", role: hint ? "alert" : null,
-        text: hint || (tgt.live ? "Richtig: ein Klick. Falsch: Antwort eintippen und Enter. Beides geht gleich zum nächsten Spieler." : "Die Antworten zur letzten Frage kannst du hier noch ändern.") }));
+        text: hint || (tgt.live ? "Enter bei leerem Feld = richtig. Falsche Antwort eintippen und Enter = falsch. Beides geht gleich zum nächsten Spieler." : "Die Antworten zur letzten Frage kannst du hier noch ändern.") }));
     }
     bar.appendChild(answer);
 
@@ -653,14 +661,14 @@
   }
 
   function paintTime() {
-    var t = $("time");
-    if (!t) return;
+    var t = $("time"), tt = $("time-text");
+    if (!t || !tt) return;
     var s = Store.curSession();
-    if (!s) { t.textContent = "00:00"; t.className = "time"; $("track").style.transform = "scaleX(0)"; return; }
+    if (!s) { tt.textContent = "00:00"; t.className = "dsp-timer time"; $("track").style.transform = "scaleX(0)"; return; }
     var rem = Store.remaining(s);
-    t.textContent = Store.fmtTime(rem);
+    tt.textContent = Store.fmtTime(rem);
     var low = s.status === "running" && rem <= 10;
-    t.className = "time" + (low ? " low" : "") + (s.status === "ended" ? " over" : "");
+    t.className = "dsp-timer time" + (low ? " low" : "") + (s.status === "ended" ? " over" : "");
     U.timeCue(s.status === "ended" ? "over" : low ? "low" : "");
     $("track").style.transform = "scaleX(" + (s.dur ? Math.max(0, rem / s.dur) : 0) + ")";
   }

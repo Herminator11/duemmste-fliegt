@@ -36,7 +36,7 @@ def main():
             pg.wait_for_timeout(150)
 
         t = lambda: pg.inner_text("#time")
-        sess = lambda: pg.inner_text(".hb-top .sess")
+        sess = lambda: pg.inner_text(".hb-top .sess").capitalize()
         played = lambda: pg.locator("#hb-more .hb-cols > div:first-child > .row").count()
         qtext = lambda: pg.inner_text("#hb-qtext")
         owner = lambda: pg.inner_text("#hb-qowner")
@@ -134,16 +134,12 @@ def main():
         check("G4 Erste Farbe", c1.lower() == "#ffb347", c1)
         check("G5 Aktuelle Frage = Frage 1", "Music Streaming" in qtext())
         check("G5 Richtige Antwort sichtbar", "Spotify" in pg.inner_text("#hb-atext"))
-        check("G5 Erster Spieler ist dran", owner() == "Anna" and "dran" in pg.locator(".hb-tile.turn .turn-tag").first.inner_text().lower())
+        check("G5 Erster Spieler ist dran", owner() == "Anna" and "dran" in pg.locator(".hb-tile.turn .dsp-turn").first.inner_text().lower())
         check("G6 'Danach' zeigt Frage 2", "24h" in pg.locator(".hb-flip .hb-front .hb-q").text_content())
 
-        # Leeres Feld + Enter macht nichts
+        # Leeres Feld + Enter = richtig, weiter zu Frage 2 und Ben
         pg.click("#hb-ans"); pg.keyboard.press("Enter")
-        check("G7 Enter bei leerem Feld bleibt bei der Frage", "Music Streaming" in qtext() and played() == 0)
-
-        # Richtig: ein Klick, weiter zu Frage 2 und Ben
-        pg.click("#btn-richtig")
-        check("G7 Richtig: Frage 2 und Ben", "24h" in qtext() and owner() == "Ben", f"{qtext()} / {owner()}")
+        check("G7 Enter bei leerem Feld gilt als richtig: Frage 2 und Ben", "24h" in qtext() and owner() == "Ben", f"{qtext()} / {owner()}")
         check("G7 Frage 1 steht unter 'Gespielt'", played() == 1)
 
         # Falsch: Antwort eintippen, Enter
@@ -153,7 +149,7 @@ def main():
         st_ = state()
         e2 = st_["game"]["sessions"][0]["played"][1]["statements"]
         check("G8 Eingetippte Antwort ist als falsch gespeichert", any(v["result"] == "falsch" and v["text"] == "Quatsch" for v in e2.values()), e2)
-        check("G8 Kreise auf den Kacheln (Anna, Ben)", pg.locator('.hb-tile >> nth=0 >> .hb-dots .dd').count() >= 1 and pg.locator('.hb-tile >> nth=1 >> .hb-dots .dd').count() >= 1)
+        check("G8 Kreise auf den Kacheln (Anna, Ben)", pg.locator('.hb-tile >> nth=0 >> .dsp-dots .dd').count() >= 1 and pg.locator('.hb-tile >> nth=1 >> .dsp-dots .dd').count() >= 1)
 
         # Leben per Herzklick
         t0 = pg.locator(".hb-tile").first
@@ -246,7 +242,7 @@ def main():
         pg.click("#btn-newgame-no")
         check("N2 Abbrechen behält Spiel", "Session 2" in sess())
         pg.click("#btn-newgame"); pg.click("#btn-newgame-yes")
-        check("N3 Neues Spiel: leer", "Neues Spiel" in sess() and "(0)" in pg.inner_text("#hist-sum"))
+        check("N3 Neues Spiel: leer", "Bereit" in sess() and "(0)" in pg.inner_text("#hist-sum"))
         check("N4 Fragen laufen weiter", nxt() == nxt_text, nxt())
         check("N5 Button 'Session 1 starten'", pg.inner_text("#btn-start") == "Session 1 starten")
         pg.click("#hb-menu")
@@ -324,7 +320,7 @@ def main():
         z.fill("#player-name", "Anna"); z.click("#player-add")
         z.evaluate("location.hash = '#/spiel'"); z.wait_for_timeout(200)
         z.click("#btn-start"); z.wait_for_timeout(200)
-        check("Z2 Spielen geht trotzdem", "Session 1" in z.inner_text(".hb-top .sess"))
+        check("Z2 Spielen geht trotzdem", "Session 1" in z.inner_text(".hb-top .sess").capitalize())
         z.click("#btn-richtig")
         check("Z2 Weiterschalten geht trotzdem", z.locator("#hb-more .hb-cols > div:first-child > .row").count() == 1)
         check("Z3 Keine JS-Fehler bei blockiertem Speicher", not zerr, zerr)

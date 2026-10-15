@@ -612,13 +612,10 @@ details.hist>summary::after{transition:transform var(--t-spring) var(--spring)}
 /* ---------- Host-Ansicht B („Bühne“): Kacheln, feste Leisten oben und unten ---------- */
 body[data-view="spiel"] .nav,body[data-view="spiel"] .chip{display:none}
 .hb{--hbtop:68px;min-height:100vh}
-.hb-top{position:sticky;top:0;z-index:30;display:flex;flex-wrap:wrap;align-items:center;gap:var(--s3) var(--s5);padding:var(--s2) 20px;min-height:var(--hbtop);
+.hb-top{position:sticky;top:0;z-index:30;display:flex;flex-direction:column;gap:var(--s2);padding:var(--s3) var(--s5);
   background:linear-gradient(180deg,rgba(7,18,25,.96),rgba(7,18,25,.88));backdrop-filter:blur(8px);border-bottom:2px solid var(--c)}
 .hb-left{display:flex;align-items:center;gap:var(--s4);flex:1 1 auto;min-width:0}
 .hb-brand{font-family:var(--poster);font-size:var(--fs-m);color:var(--text);text-decoration:none;white-space:nowrap}
-.hb-top .time{font-family:var(--display);font-weight:800;font-size:var(--fs-3xl);line-height:1;color:var(--c);font-variant-numeric:tabular-nums}
-.hb-top .time.low{color:var(--danger);animation:pulse 1s ease-in-out infinite}
-.hb-top .time.over{color:var(--danger)}
 .hb-top .sess{display:flex;flex-direction:column;line-height:1.15}
 .hb-top .sess span{color:var(--dim);font-size:var(--fs-s)}
 .hb-ctrl{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap}
@@ -632,17 +629,9 @@ body[data-view="spiel"] .nav,body[data-view="spiel"] .chip{display:none}
 .hb-menu h3{margin:0 0 var(--s2);font-family:var(--display);font-size:var(--fs-m)}
 .hb-menu p{margin:0 0 var(--s2)}
 .hb-screen{min-height:calc(100dvh - var(--hbtop));display:flex;flex-direction:column}
-.hb-stage{flex:1 1 auto;padding:var(--s5) 20px 28px;max-width:1500px;width:100%;margin:0 auto}
+.hb-stage{flex:1 1 auto;padding:var(--s4) var(--s5) 28px;max-width:1400px;width:100%;margin:0 auto}
 .hb-win{font-family:var(--poster);font-size:clamp(1.6rem,4vw,3rem);color:var(--gold);text-align:center;margin:0 0 20px}
-.hb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:var(--s4);margin:0 0 var(--s5)}
-.hb-tile{position:relative;aspect-ratio:4/3;min-height:170px;border:3px solid var(--line);border-radius:var(--r-l);background:linear-gradient(160deg,var(--surface),var(--ground));
-  transition:border-color var(--t-fast),box-shadow var(--t-fast),transform var(--t-fast) var(--out)}
-.hb-tile:hover,.hb-tile:focus-within{transform:translateY(-2px);z-index:5}
 .hb-av{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;width:100%;border:0;background:transparent;border-radius:calc(var(--r-l) - 3px);cursor:pointer;padding:0 0 var(--s5);color:inherit}
-.hb-av svg,.hb-av img{height:70%;width:auto;max-width:80%}
-.hb-top-row{position:absolute;top:6px;left:8px;right:8px;display:flex;align-items:center;justify-content:space-between;gap:var(--s2);pointer-events:none}
-.hb-top-row>*{pointer-events:auto}
-.hb-hearts{display:flex;align-items:center;gap:1px;padding:2px var(--s2);border-radius:var(--r-pill);background:rgba(12,26,32,.78)}
 .hb-heart,.hb-hbtn{appearance:none;border:0;background:transparent;padding:2px;cursor:pointer;color:var(--dim);font-size:var(--fs-l);line-height:1;border-radius:var(--r-s);min-width:24px;min-height:28px}
 .hb-heart.on{color:var(--danger)}
 .hb-heart:hover{transform:scale(1.25)}
@@ -651,26 +640,10 @@ body[data-view="spiel"] .nav,body[data-view="spiel"] .chip{display:none}
 .hb-hnum{display:inline-flex;align-items:center;gap:var(--s1);font-weight:700;color:var(--danger)}
 .hb-gear{appearance:none;border:2px solid transparent;background:rgba(12,26,32,.78);color:var(--dim);width:32px;height:32px;border-radius:50%;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:var(--fs-m)}
 .hb-gear:hover,.hb-gear[aria-expanded="true"]{color:var(--text);border-color:var(--c)}
-.hb-foot{position:absolute;left:8px;right:8px;bottom:8px;display:flex;align-items:center;justify-content:center;gap:var(--s2);pointer-events:none}
-.hb-name{max-width:70%;padding:2px var(--s3);border-radius:var(--r-pill);background:rgba(12,26,32,.85);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hb-hov{position:absolute;left:8px;right:8px;bottom:38px;display:flex;flex-wrap:wrap;gap:var(--s2);justify-content:center;opacity:0;transform:translateY(6px);pointer-events:none;
   transition:opacity var(--t-fast),transform var(--t-fast) var(--out)}
-.hb-tile:hover .hb-hov,.hb-tile:focus-within .hb-hov{opacity:1;transform:none;pointer-events:auto}
 @media(hover:none){.hb-hov{opacity:1;transform:none;pointer-events:auto}}
-.hb-res{position:absolute;left:8px;top:42px;display:inline-flex;align-items:center;gap:var(--s1);padding:2px var(--s3) 2px var(--s2);border-radius:var(--r-pill);font-size:var(--fs-s);font-weight:700;background:rgba(12,26,32,.85);border:2px solid var(--dim);color:var(--dim)}
-.hb-res.r-richtig{border-color:#3ddc97;color:#3ddc97}
-.hb-res.r-falsch{border-color:var(--danger);color:var(--danger)}
-.hb-res .ic{font-size:1em;margin:0}
-.hb-voted{position:absolute;right:10px;top:44px;width:24px;height:24px;border-radius:50%;background:#3ddc97;color:var(--ground);display:inline-flex;align-items:center;justify-content:center}
-.hb-voted .ic{font-size:.9rem;margin:0}
-.hb-pill{left:auto;right:10px;bottom:36px}
-.hb-tile.turn{border-color:var(--c);box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 40%,transparent),0 0 28px color-mix(in srgb,var(--c) 50%,transparent)}
 .hb-tile.target:not(.turn){border-color:color-mix(in srgb,var(--c) 70%,var(--line));border-style:dashed}
-.hb-tile.out{opacity:.45;filter:grayscale(.8)}
-.hb-tile.out:hover,.hb-tile.out:focus-within{opacity:1;filter:none}
-.hb-tile.ghost{border-style:dashed;opacity:.75}
-.hb-tile.cand{border-color:var(--hot);box-shadow:0 0 22px rgba(255,61,110,.5)}
-.hb-tile.loser{border-color:var(--danger);box-shadow:0 0 22px rgba(255,90,95,.45)}
 .hb-pop{position:absolute;z-index:20;left:50%;top:44px;transform:translateX(-50%);width:min(320px,92vw);padding:var(--s3) var(--s4);border:2px solid var(--c);border-radius:var(--r-m);
   background:var(--surface);box-shadow:0 18px 40px rgba(0,0,0,.55);font-size:var(--fs-s)}
 .hb-pop h4{margin:0 0 var(--s2);font-family:var(--display);font-size:var(--fs-l)}
@@ -701,12 +674,6 @@ body[data-view="spiel"] .nav,body[data-view="spiel"] .chip{display:none}
 @media(max-width:599px){.hb-bottom{position:static}.hb-cards .hb-flip:nth-child(2){display:none}.hb-flip{width:100%;height:96px}.hb-cards{flex:1 0 100%}.hb-top .time{font-size:var(--fs-3xl)}}
 
 /* B: aktuelle Frage mit Antwort immer sichtbar, Kreise je Spieler, Senden */
-.hb-dots{position:absolute;left:10px;top:42px;display:flex;flex-wrap:wrap;gap:0;max-width:62%;z-index:6}
-.hb-dots .dd{width:13px;height:13px}
-.hb-dots .dd.live{background:transparent;border-color:var(--c);animation:pulse 1.2s ease-in-out infinite}
-.hb-dots .dd.live.r-richtig{background:#3ddc97;border-color:#3ddc97;animation:none}
-.hb-dots .dd.live.r-falsch{background:var(--danger);border-color:var(--danger);animation:none}
-.hb-dots .dd.live.r-keine{background:var(--dim);border-color:var(--dim);animation:none}
 .hb-qa{flex:1 1 380px;min-width:0;display:flex;flex-direction:column;gap:var(--s2);justify-content:center}
 .hb-qwho{display:flex;align-items:center;gap:var(--s2);color:var(--dim);font-size:var(--fs-s)}
 .hb-qwho b{color:var(--c);font-family:var(--display);font-size:var(--fs-l)}
@@ -730,7 +697,6 @@ kbd{font-family:var(--ui);font-weight:700;padding:0 var(--s2);border-radius:var(
 
 /* ---------- Kreise je Frage: schlichte Punkte ohne Symbol. Das Ergebnis steht zusätzlich im Hover-Fenster und im aria-label. ---------- */
 .dd{position:relative;width:18px;height:18px}
-.hb-dots .dd{width:16px;height:16px}
 
 /* ---------- Kleine Host-Knöpfe: Trefferfläche ≥ 44 px, sichtbare Größe bleibt ---------- */
 /* Die Fläche wächst nach oben und unten (nicht zur Seite), damit nebeneinander liegende Herzen sich nicht überlappen. */
@@ -791,30 +757,36 @@ body[data-view="anzeige"] .calm-btn,body[data-view="spiel"] .calm-btn{display:no
 /* Text-Knöpfe in Zeilen: Schrift bündig mit dem Fragetext, Trefferfläche bleibt */
 .qact{margin-left:calc(var(--s3) * -1)}
 
-/* Master: Kreise mit Fenster (Hover zeigt, Klick hält offen und erlaubt Ändern) */
-.hb-dwrap{position:relative;display:inline-flex}
-.hb-dbtn{appearance:none;border:0;background:transparent;padding:4px;margin:0;border-radius:50%;cursor:pointer;display:inline-flex;transition:transform var(--t-spring) var(--spring)}
-.hb-dbtn:hover,.hb-dwrap.open .hb-dbtn{transform:scale(1.3)}
-.hb-dbtn:focus-visible{outline:3px solid var(--text);outline-offset:0}
-.hb-tile:has(.hb-dwrap:hover,.hb-dwrap.open,.hb-dwrap:focus-within){z-index:30}
-.hb-dpop{--rc:var(--dim);display:none;position:absolute;top:100%;left:-6px;width:max(260px,min(340px,80vw));flex-direction:column;gap:var(--s2);padding:var(--s3) var(--s4);
-  border:3px solid var(--rc);border-radius:var(--r-m);text-align:left;cursor:default;
-  background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 20%,#070d12),color-mix(in srgb,var(--rc) 9%,#070d12));
-  box-shadow:0 18px 40px rgba(0,0,0,.65),0 0 34px color-mix(in srgb,var(--rc) 35%,transparent)}
-.hb-dpop::before{content:"";position:absolute;left:0;right:0;top:-10px;height:10px}
-.hb-dpop.res-richtig{--rc:#3ddc97}
-.hb-dpop.res-falsch{--rc:var(--hot)}
-.hb-dwrap.open .hb-dpop,.hb-dwrap:focus-within .hb-dpop{display:flex}
-@media(hover:hover){.hb-dwrap:hover .hb-dpop{display:flex}}
-.hb-dplab{color:var(--rc);font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:var(--fs-s)}
-.hb-dpq{font-family:var(--display);font-weight:800;line-height:1.2;color:var(--text);font-size:var(--fs-m)}
-.hb-dpc{color:var(--gold);font-weight:700;font-size:var(--fs-s)}
-.hb-dpa{font-weight:700;color:var(--text);overflow-wrap:anywhere}
-.hb-dpa i{color:var(--dim);font-weight:400}
-.hb-dphint{color:var(--dim);font-size:var(--fs-s)}
-.hb-edit{display:flex;flex-direction:column;gap:var(--s2);margin-top:var(--s1);grid-column:1/-1}
-.hb-edit-in{width:100%;min-width:0}
-.hb-edit-res{display:flex;gap:var(--s2);flex-wrap:wrap}
-.hb-sm{padding:var(--s1) var(--s3);min-height:0;font-size:var(--fs-s)}
 .hrow .hact{display:flex;align-items:center;gap:var(--s2)}
 @media(prefers-reduced-motion:reduce){.hb-dbtn{transition:none}.hb-dbtn:hover,.hb-dwrap.open .hb-dbtn{transform:none}}
+
+/* ---------- Master: gleiche Kacheln und Kopfzeile wie der Game Screen, dazu die Regler des Masters ---------- */
+.hb-top .dsp-head{width:100%;max-width:1400px;margin:0 auto}
+.hb-top .hb-ctrl{width:100%;max-width:1400px;margin:0 auto}
+.hb-top .dsp-title{color:var(--text);text-decoration:none}
+.hb-track{margin:0}
+.hb-tile:hover,.hb-tile:focus-within{z-index:5}
+.hb-tile.target:not(.turn){border-style:dashed;border-color:color-mix(in srgb,var(--c) 70%,var(--line))}
+.hb-tile.out:hover,.hb-tile.out:focus-within{opacity:1;filter:none}
+.hb-tile:has(.dd-wrap:hover,.dd-wrap.open,.dd-wrap:focus-within){z-index:30}
+.hb-av{position:absolute;inset:0;width:100%;border:0;border-radius:calc(var(--r-l) - 3px);background:transparent;cursor:pointer;padding:0}
+.hb-av:focus-visible{outline:3px solid var(--text);outline-offset:-3px}
+.hb-hearts{display:flex;align-items:center;gap:1px}
+.dsp-hearts{gap:var(--s2)}
+.hb-heart,.hb-hbtn{font-size:var(--fs-xl)}
+.hb-gear{width:30px;height:30px;background:transparent}
+.dd.live{background:transparent;border-color:var(--c);animation:pulse 1.2s ease-in-out infinite}
+.dd.live.r-richtig{background:#3ddc97;border-color:#3ddc97;animation:none}
+.dd.live.r-falsch{background:var(--danger);border-color:var(--danger);animation:none}
+.dd.live.r-keine{background:var(--dim);border-color:var(--dim);animation:none}
+/* Banner mit Editor muss anklickbar sein, solange es offen ist */
+.hb-tile .dd-wrap.open .dsp-pop{pointer-events:auto}
+.hb-hov{bottom:54px}
+.hb-dphint{color:var(--dim);font-size:var(--fs-s)}
+.dsp-pop .hb-edit{width:100%;margin-top:var(--s2)}
+.dsp-pop .hb-edit-res{justify-content:center}
+.hb-tile:hover .hb-hov,.hb-tile:focus-within .hb-hov{opacity:1;transform:none;pointer-events:auto}
+.hb-top .dsp-right{flex-wrap:wrap;min-width:0}
+.hb-top .dsp-head>*{min-width:0}
+@media(max-width:599px){.hb-top{padding:var(--s2) var(--s3)}.hb-top .dsp-mode{display:none}}
+.hb-top .dsp-round{white-space:nowrap}
