@@ -82,3 +82,7 @@ Figuren-Generator: [DiceBear](https://www.dicebear.com/) (MIT). Stile: Open Peep
 - Jeder Commit wird automatisch nach `origin/<branch>` gepusht (`.githooks/post-commit`). Ohne Remote bleibt er lokal.
 - Fertig = Pull Request nach `main`, Tests laufen, dann Merge und Branch löschen. Kein Force-Push auf `main`.
 - Einmalig nach dem Klonen: `git config core.hooksPath .githooks`. Remote anlegen: `git remote add origin <URL>` und `git push -u origin main`.
+
+## Rechtlicher Hinweis
+
+Dies ist ein **privates, nicht kommerzielles** Projekt: ein Moderationswerkzeug für ein Quizspiel-Format, nicht veröffentlicht und nicht als Produkt angeboten. Der Name „Der Dümmste fliegt“ und das Format gehören ihren Urhebern; das Projekt ist **inoffiziell und steht in keiner Verbindung zu ihnen**. Der Code steht unter der MIT-Lizenz (siehe [LICENSE](LICENSE)); sie gilt nur für meinen Code, nicht für den Namen oder das Format. Wenn dir etwas gehört und du eine Änderung oder Entfernung möchtest, eröffne ein Issue oder schreib an hermann11.ad@gmail.com.
